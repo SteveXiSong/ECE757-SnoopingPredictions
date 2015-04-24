@@ -287,13 +287,16 @@ machine(L1Cache, "Directory protocol")
           if (in_msg.Requestor == machineID && in_msg.RequestorMachine == MachineType:L1Cache) {
             trigger(Event:Own_GETX, in_msg.Addr,
                     getCacheEntry(in_msg.Addr), TBEs[in_msg.Addr]);
+
+          } else if (in_msg.RequestorMachine == MachineType:L1Cache) {
+            // PUT PREDICTOR ACTIONS ON GETX HERE 
           } else {
             trigger(Event:Fwd_GETX, in_msg.Addr,
                     getCacheEntry(in_msg.Addr), TBEs[in_msg.Addr]);
           }
         } else if (in_msg.Type == CoherenceRequestType:GETS) {
           if (in_msg.RequestorMachine == MachineType:L1Cache) {
-            
+            // PUT PREDICTOR ACTIONS ON GETS HERE
           } else {
             trigger(Event:Fwd_GETS, in_msg.Addr,
                     getCacheEntry(in_msg.Addr), TBEs[in_msg.Addr]);
