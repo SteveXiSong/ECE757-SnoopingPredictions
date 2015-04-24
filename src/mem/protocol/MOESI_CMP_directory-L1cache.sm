@@ -422,9 +422,10 @@ machine(L1Cache, "Directory protocol")
         out_msg.Requestor := machineID;
         out_msg.RequestorMachine := MachineType:L1Cache;
         // cs757-steve:
-        //out_msg.Destination.addNetDest(predictor.getPrediction(address, machineID));
-        predictor.getPrediction(address, machineID);
-        out_msg.Destination.addNetDest(broadcast(MachineType:L2Cache));
+        out_msg.Destination.addNetDest(predictor.getPrediction(address, machineID));
+        //predictor.getPrediction(address, machineID);
+        //out_msg.Destination.broadcast();
+        //out_msg.Destination.addNetDest(broadcast(MachineType:L2Cache));
         //out_msg.Destination.add(mapAddressToRange(address, MachineType:L2Cache,
         //      l2_select_low_bit, l2_select_num_bits, intToID(0)));
         out_msg.MessageSize := MessageSizeType:Request_Control;
@@ -950,6 +951,14 @@ machine(L1Cache, "Directory protocol")
     l_popForwardQueue;
   }
 
+  //*************
+  // ece757-Steve
+  transition(I, Fwd_GETS) {
+    f_sendAck;
+    l_popForwardQueue;
+  }
+  //*************
+
   transition({S, SM, O, OM, MM, MM_W, M, M_W}, Load) {
     h_load_hit;
     uu_profileDataHit;
@@ -1104,6 +1113,7 @@ machine(L1Cache, "Directory protocol")
   }
 
   transition(IM, Ack) {
+    f_sendAck;
     m_decrementNumberOfMessages;
     o_checkForCompletion;
     n_popResponseQueue;
@@ -1197,6 +1207,26 @@ machine(L1Cache, "Directory protocol")
     f_sendAck;
     l_popForwardQueue;
   }
+
+  //*************
+  // ece757-Steve: IS-fwd GETS-IS
+  transition(IS, Fwd_GETS) {
+    f_sendAck;
+    l_popForwardQueue;
+  }
+
+  transition(IS, Ack) {
+    m_decrementNumberOfMessages;
+    o_checkForCompletion;
+    n_popResponseQueue;
+  }
+  
+  transition({M_W, S}, Ack){
+    //m_decrementNumberOfMessages;
+    //o_checkForCompletion;
+    n_popResponseQueue;
+  }
+  //-------------
 
   transition(IS, Data, S) {
     u_writeDataToCache;
