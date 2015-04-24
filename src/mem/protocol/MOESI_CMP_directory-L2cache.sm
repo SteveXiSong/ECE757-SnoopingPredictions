@@ -30,6 +30,7 @@ machine(L2Cache, "Token protocol")
 : CacheMemory * L2cache;
   Cycles response_latency := 2;
   Cycles request_latency := 2;
+  MulticastScoreboard * sb;
 
   // L2 BANK QUEUES
   // From local bank of L2 cache TO the network
@@ -594,13 +595,25 @@ machine(L2Cache, "Token protocol")
       peek(L1requestNetwork_in, RequestMsg) {
         assert(in_msg.Destination.isElement(machineID));
         if (in_msg.Type == CoherenceRequestType:GETX) {
+          if(localDirectory.isTagPresent(in_msg.Addr)) { 
+            sb.record_GETX(in_msg.Destination, localDirectory[in_msg.Addr].Sharers, 
+                           localDirectory[in_msg.Addr].OwnerValid, localDirectory[in_msg.Addr].Owner);
+          } else {
+            sb.record_GETX(in_msg.Destination);
+          }
           trigger(Event:L1_GETX, in_msg.Addr,
                   getCacheEntry(in_msg.Addr), TBEs[in_msg.Addr]);
         } else if (in_msg.Type == CoherenceRequestType:GETS) {
             trigger(Event:L1_GETS, in_msg.Addr,
                   getCacheEntry(in_msg.Addr), TBEs[in_msg.Addr]);
         } else if (in_msg.Type == CoherenceRequestType:MC_GETS) {
-            trigger(Event:L1_GETS, in_msg.Addr,
+          if(localDirectory.isTagPresent(in_msg.Addr)) { 
+            sb.record_GETS(in_msg.Destination, localDirectory[in_msg.Addr].Sharers, 
+                           localDirectory[in_msg.Addr].OwnerValid, localDirectory[in_msg.Addr].Owner);
+          } else {
+            sb.record_GETS(in_msg.Destination);
+          }
+          trigger(Event:L1_GETS, in_msg.Addr,
                   getCacheEntry(in_msg.Addr), TBEs[in_msg.Addr]);
         } else if (in_msg.Type == CoherenceRequestType:PUTO) {
           trigger(Event:L1_PUTO, in_msg.Addr,
