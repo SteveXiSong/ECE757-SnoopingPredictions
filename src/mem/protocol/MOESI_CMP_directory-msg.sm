@@ -36,6 +36,7 @@
 enumeration(CoherenceRequestType, desc="...") {
   GETX,      desc="Get eXclusive";
   GETS,      desc="Get Shared";
+  MC_GETS,   desc="Multicast GETS";
   PUTX,      desc="Put eXclusive";
   PUTO,      desc="Put Owned";
   PUTO_SHARERS,      desc="Put Owned, but sharers exist so don't remove from sharers list";

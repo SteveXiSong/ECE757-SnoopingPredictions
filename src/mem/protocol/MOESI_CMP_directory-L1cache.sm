@@ -287,20 +287,16 @@ machine(L1Cache, "Directory protocol")
           if (in_msg.Requestor == machineID && in_msg.RequestorMachine == MachineType:L1Cache) {
             trigger(Event:Own_GETX, in_msg.Addr,
                     getCacheEntry(in_msg.Addr), TBEs[in_msg.Addr]);
-
-          } else if (in_msg.RequestorMachine == MachineType:L1Cache) {
-            // PUT PREDICTOR ACTIONS ON GETX HERE 
           } else {
             trigger(Event:Fwd_GETX, in_msg.Addr,
                     getCacheEntry(in_msg.Addr), TBEs[in_msg.Addr]);
           }
         } else if (in_msg.Type == CoherenceRequestType:GETS) {
-          if (in_msg.RequestorMachine == MachineType:L1Cache) {
-            // PUT PREDICTOR ACTIONS ON GETS HERE
-          } else {
-            trigger(Event:Fwd_GETS, in_msg.Addr,
-                    getCacheEntry(in_msg.Addr), TBEs[in_msg.Addr]);
-          }
+          trigger(Event:Fwd_GETS, in_msg.Addr,
+                  getCacheEntry(in_msg.Addr), TBEs[in_msg.Addr]);
+        } else if (in_msg.Type == CoherenceRequestType:MC_GETS) {
+          requestNetwork_in.dequeue();
+          DPRINTF(RubySlicc, "SOMETHING\n");
         } else if (in_msg.Type == CoherenceRequestType:DMA_READ) {
           trigger(Event:Fwd_DMA, in_msg.Addr,
                   getCacheEntry(in_msg.Addr), TBEs[in_msg.Addr]);
@@ -425,16 +421,16 @@ machine(L1Cache, "Directory protocol")
     peek(mandatoryQueue_in, RubyRequest) {
       enqueue(requestNetwork_out, RequestMsg,  request_latency) {
         out_msg.Addr := address;
-        out_msg.Type := CoherenceRequestType:GETS;
+        out_msg.Type := CoherenceRequestType:MC_GETS;
         out_msg.Requestor := machineID;
         out_msg.RequestorMachine := MachineType:L1Cache;
         // cs757-steve:
-        out_msg.Destination.addNetDest(predictor.getPrediction(address, machineID));
-        //predictor.getPrediction(address, machineID);
-        //out_msg.Destination.broadcast();
+        //out_msg.Destination.addNetDest(predictor.getPrediction(address, machineID));
+        //out_msg.Destination := predictor.getPrediction(address, machineID);
         //out_msg.Destination.addNetDest(broadcast(MachineType:L2Cache));
-        //out_msg.Destination.add(mapAddressToRange(address, MachineType:L2Cache,
-        //      l2_select_low_bit, l2_select_num_bits, intToID(0)));
+        out_msg.Destination.broadcast(MachineType:L1Cache);
+        out_msg.Destination.add(mapAddressToRange(address, MachineType:L2Cache,
+              l2_select_low_bit, l2_select_num_bits, intToID(0)));
         out_msg.MessageSize := MessageSizeType:Request_Control;
         out_msg.AccessMode := in_msg.AccessMode;
         out_msg.Prefetch := in_msg.Prefetch;
@@ -958,14 +954,6 @@ machine(L1Cache, "Directory protocol")
     l_popForwardQueue;
   }
 
-  //*************
-  // ece757-Steve
-  //transition(I, Fwd_GETS) {
-  //  f_sendAck;
-  //  l_popForwardQueue;
-  //}
-  //*************
-
   transition({S, SM, O, OM, MM, MM_W, M, M_W}, Load) {
     h_load_hit;
     uu_profileDataHit;
@@ -1120,7 +1108,6 @@ machine(L1Cache, "Directory protocol")
   }
 
   transition(IM, Ack) {
-    f_sendAck;
     m_decrementNumberOfMessages;
     o_checkForCompletion;
     n_popResponseQueue;
@@ -1214,26 +1201,6 @@ machine(L1Cache, "Directory protocol")
     f_sendAck;
     l_popForwardQueue;
   }
-
-  //*************
-  // ece757-Steve: IS-fwd GETS-IS
-  //transition(IS, Fwd_GETS) {
-  //  f_sendAck;
-  //  l_popForwardQueue;
-  //}
-
-  //transition(IS, Ack) {
-  //  m_decrementNumberOfMessages;
-  //  o_checkForCompletion;
-  //  n_popResponseQueue;
-  //}
-  //
-  //transition({M_W, S}, Ack){
-  //  //m_decrementNumberOfMessages;
-  //  //o_checkForCompletion;
-  //  n_popResponseQueue;
-  //}
-  //-------------
 
   transition(IS, Data, S) {
     u_writeDataToCache;
