@@ -292,8 +292,12 @@ machine(L1Cache, "Directory protocol")
                     getCacheEntry(in_msg.Addr), TBEs[in_msg.Addr]);
           }
         } else if (in_msg.Type == CoherenceRequestType:GETS) {
-          trigger(Event:Fwd_GETS, in_msg.Addr,
-                  getCacheEntry(in_msg.Addr), TBEs[in_msg.Addr]);
+          if (in_msg.RequestorMachine == MachineType:L1Cache) {
+            
+          } else {
+            trigger(Event:Fwd_GETS, in_msg.Addr,
+                    getCacheEntry(in_msg.Addr), TBEs[in_msg.Addr]);
+          }
         } else if (in_msg.Type == CoherenceRequestType:DMA_READ) {
           trigger(Event:Fwd_DMA, in_msg.Addr,
                   getCacheEntry(in_msg.Addr), TBEs[in_msg.Addr]);
