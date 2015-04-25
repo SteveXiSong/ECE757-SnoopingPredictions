@@ -294,9 +294,12 @@ machine(L1Cache, "Directory protocol")
         } else if (in_msg.Type == CoherenceRequestType:GETS) {
           trigger(Event:Fwd_GETS, in_msg.Addr,
                   getCacheEntry(in_msg.Addr), TBEs[in_msg.Addr]);
-        } else if (in_msg.Type == CoherenceRequestType:MC_GETS) {
-          requestNetwork_in.dequeue();
-          DPRINTF(RubySlicc, "SOMETHING\n");
+        // ece757-Steve
+        } else if (in_msg.Type == CoherenceRequestType:MC_GETS) { 
+            //DPRINTF(RubySnoopPred, "profile request msg.\n");
+            predictor.profileRequestMsg(predictor.getGETS());
+            requestNetwork_in.dequeue();
+        // ------------
         } else if (in_msg.Type == CoherenceRequestType:DMA_READ) {
           trigger(Event:Fwd_DMA, in_msg.Addr,
                   getCacheEntry(in_msg.Addr), TBEs[in_msg.Addr]);

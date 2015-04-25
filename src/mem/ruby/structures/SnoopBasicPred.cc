@@ -5,6 +5,17 @@
 
 using namespace std;
 
+typedef RubySnoopBasicPredParams Params;
+SnoopBasicPred::SnoopBasicPred(const Params *p)
+    :SimObject(p)
+{
+    profileData.MC_req_fromL1 = 0;
+}
+
+SnoopBasicPred::~SnoopBasicPred(){
+    //DPRINTF(SnoopBasicPred, "SnoopBasicPred destructor is called\n");
+}
+
 NetDest SnoopBasicPred::getPrediction(Address addr, MachineID local) {
   NetDest prediction;
 
@@ -24,8 +35,30 @@ NetDest SnoopBasicPred::getPrediction(Address addr, MachineID local) {
 
   //fprintf(stdout, "[SnoopBasicPred] getPrediction is called.\n");
   DPRINTF(RubySnoopPred, "[SnoopBasicPred] L1 Prediction: %s\n", prediction);
-  DPRINTF(RubySlicc, "L1 Prediction: %s\n", prediction);
   return prediction;
+}
+
+void SnoopBasicPred::profileRequestMsg(int reqNum){
+    DPRINTF(RubySnoopPred, "profileRequestMsg is called.\n");
+    profileData.tot_req_fromL1++;
+    switch(reqNum){
+        case GETX:
+            profileData.GetS++;
+            break;
+        case GETS:
+            profileData.GetX++;
+            break;
+        case MC_GETS:
+            profileData.MC_GetS++;
+            break;
+        default:
+            break;
+    }
+    return;
+}
+
+int SnoopBasicPred::getGETS(){
+    return GETS;
 }
 
 SnoopBasicPred *
