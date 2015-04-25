@@ -163,6 +163,13 @@ structure (CacheMemory, external = "yes") {
   Scalar demand_hits;
 }
 
+structure (MulticastScoreboard, external = "yes") {
+  void record_GETS(MachineID, NetDest, NetDest, bool, MachineID);
+  void record_GETS(MachineID, NetDest);
+  void record_GETX(MachineID, NetDest, NetDest, bool, MachineID);
+  void record_GETX(MachineID, NetDest);
+}
+
 structure (WireBuffer, inport="yes", outport="yes", external = "yes") {
 
 }
