@@ -596,10 +596,10 @@ machine(L2Cache, "Token protocol")
         assert(in_msg.Destination.isElement(machineID));
         if (in_msg.Type == CoherenceRequestType:GETX) {
           if(localDirectory.isTagPresent(in_msg.Addr)) { 
-            sb.record_GETX(in_msg.Destination, localDirectory[in_msg.Addr].Sharers, 
+            sb.record_GETX(in_msg.Requestor, in_msg.Destination, localDirectory[in_msg.Addr].Sharers, 
                            localDirectory[in_msg.Addr].OwnerValid, localDirectory[in_msg.Addr].Owner);
           } else {
-            sb.record_GETX(in_msg.Destination);
+            sb.record_GETX(in_msg.Requestor, in_msg.Destination);
           }
           trigger(Event:L1_GETX, in_msg.Addr,
                   getCacheEntry(in_msg.Addr), TBEs[in_msg.Addr]);
@@ -608,10 +608,10 @@ machine(L2Cache, "Token protocol")
                   getCacheEntry(in_msg.Addr), TBEs[in_msg.Addr]);
         } else if (in_msg.Type == CoherenceRequestType:MC_GETS) {
           if(localDirectory.isTagPresent(in_msg.Addr)) { 
-            sb.record_GETS(in_msg.Destination, localDirectory[in_msg.Addr].Sharers, 
+            sb.record_GETS(in_msg.Requestor, in_msg.Destination, localDirectory[in_msg.Addr].Sharers, 
                            localDirectory[in_msg.Addr].OwnerValid, localDirectory[in_msg.Addr].Owner);
           } else {
-            sb.record_GETS(in_msg.Destination);
+            sb.record_GETS(in_msg.Requestor, in_msg.Destination);
           }
           trigger(Event:L1_GETS, in_msg.Addr,
                   getCacheEntry(in_msg.Addr), TBEs[in_msg.Addr]);
