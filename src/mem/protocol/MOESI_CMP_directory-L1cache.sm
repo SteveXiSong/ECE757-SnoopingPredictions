@@ -296,8 +296,7 @@ machine(L1Cache, "Directory protocol")
                   getCacheEntry(in_msg.Addr), TBEs[in_msg.Addr]);
         // ece757-Steve
         } else if (in_msg.Type == CoherenceRequestType:MC_GETS) { 
-            //DPRINTF(RubySnoopPred, "profile request msg.\n");
-            predictor.profileRequestMsg(predictor.getGETS());
+            predictor.profileInMsg(predictor.getGETS(), L1Dcache.isTagPresent(in_msg.Addr));
             requestNetwork_in.dequeue();
         // ------------
         } else if (in_msg.Type == CoherenceRequestType:DMA_READ) {

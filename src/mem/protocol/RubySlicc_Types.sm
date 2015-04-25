@@ -96,8 +96,10 @@ structure (NetDest, external = "yes", non_obj="yes") {
 
 structure (SnoopBasicPred, external = "yes", non_obj="yes") {
     NetDest getPrediction(Address addr, MachineID local);
-    void profileRequestMsg(int);
+    void profileInMsg(int, bool);
     int getGETS();
+    int getGETX();
+    int getPUTX();
 }
 
 structure (Sequencer, external = "yes") {

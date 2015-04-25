@@ -9,7 +9,7 @@ typedef RubySnoopBasicPredParams Params;
 SnoopBasicPred::SnoopBasicPred(const Params *p)
     :SimObject(p)
 {
-    profileData.MC_req_fromL1 = 0;
+    //profileData.MC_req_fromL1 = 0;
 }
 
 SnoopBasicPred::~SnoopBasicPred(){
@@ -38,18 +38,17 @@ NetDest SnoopBasicPred::getPrediction(Address addr, MachineID local) {
   return prediction;
 }
 
-void SnoopBasicPred::profileRequestMsg(int reqNum){
-    DPRINTF(RubySnoopPred, "profileRequestMsg is called.\n");
-    profileData.tot_req_fromL1++;
+void SnoopBasicPred::profileInMsg(int reqNum, bool succ){
+    //DPRINTF(RubySnoopPred, "profileRequestMsg is called.\n");
+    inMsg_tot++;
+    if( succ == false)
+        return;
     switch(reqNum){
         case GETX:
-            profileData.GetS++;
+            inMsg_GetX++;
             break;
         case GETS:
-            profileData.GetX++;
-            break;
-        case MC_GETS:
-            profileData.MC_GetS++;
+            inMsg_GetS++;
             break;
         default:
             break;
@@ -60,6 +59,47 @@ void SnoopBasicPred::profileRequestMsg(int reqNum){
 int SnoopBasicPred::getGETS(){
     return GETS;
 }
+
+int SnoopBasicPred::getGETX(){
+    return GETX;
+}
+
+int SnoopBasicPred::getMC_GETS(){
+    return MC_GETS;
+}
+
+int SnoopBasicPred::getPUTX(){
+    return PUTX;
+}
+
+void SnoopBasicPred::regStats(){
+   inMsg_tot
+       .name(name()+".SnoopPred.tot_inMsg_network")
+       .desc("..");
+
+   //inMsg_tot_peer
+   //    .name(name()+".tot_inMsg_peer")
+   //    .desc("..");
+
+   inMsg_GetS
+       .name(name()+".SnoopPred.tot_inMsg_GetS")
+       .desc("..");
+
+   inMsg_GetX
+       .name(name()+".SnoopPred.tot_inMsg_GetX")
+       .desc("..");
+
+   inMsg_PutX
+       .name(name()+".SnoopPred.tot_inMsg_PutX")
+       .desc("..");
+
+   inMsg_accuracy
+       .name(name()+".SnoopPred.inMsg_accuracy")
+       .desc("..");
+
+   inMsg_accuracy = (inMsg_GetS+inMsg_GetX+inMsg_PutX+inMsg_PutS)/(inMsg_tot);
+}
+
 
 SnoopBasicPred *
 RubySnoopBasicPredParams::create()
