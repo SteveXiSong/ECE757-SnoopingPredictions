@@ -46,6 +46,7 @@ python_class_map = {
                     "Prefetcher":"Prefetcher",
                     "Cycles":"Cycles",
                     "SnoopBasicPred":"RubySnoopBasicPred",
+                    "OwnerPred":"RubyOwnerPred",
                     "MulticastScoreboard":"MulticastScoreboard",
                    }
 

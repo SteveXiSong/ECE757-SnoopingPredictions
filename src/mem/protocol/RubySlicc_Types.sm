@@ -100,6 +100,12 @@ structure (SnoopBasicPred, external = "yes", non_obj="yes") {
     int getGETS();
 }
 
+structure (OwnerPred, external = "yes", non_obj="yes") {
+    NetDest getPrediction(Address addr, MachineID local);
+    void profileRequestMsg(int);
+    int getGETS();
+}
+
 structure (Sequencer, external = "yes") {
   void readCallback(Address, DataBlock);
   void readCallback(Address, DataBlock, bool);

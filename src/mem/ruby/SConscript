@@ -54,11 +54,12 @@ DebugFlag('RubyTester')
 DebugFlag('RubyStats')
 DebugFlag('RubyResourceStalls')
 DebugFlag('RubySnoopPred')
+DebugFlag('RubyOwnerPred')
 
 CompoundFlag('Ruby', [ 'RubyQueue', 'RubyNetwork', 'RubyTester',
     'RubyGenerated', 'RubySlicc', 'RubySystem', 'RubyCache',
     'RubyMemory', 'RubyDma', 'RubyPort', 'RubySequencer', 'RubyCacheTrace',
-    'RubyPrefetcher', 'RubySnoopPred'])
+    'RubyPrefetcher', 'RubySnoopPred', 'RubyOwnerPred' ])
 
 if env['PROTOCOL'] == 'None':
     Return()
@@ -135,4 +136,5 @@ MakeInclude('system/Sequencer.hh')
 MakeInclude('structures/TBETable.hh')
 MakeInclude('structures/TimerTable.hh')
 MakeInclude('structures/SnoopBasicPred.hh')
+MakeInclude('structures/OwnerPred.hh')
 MakeInclude('structures/MulticastScoreboard.hh')

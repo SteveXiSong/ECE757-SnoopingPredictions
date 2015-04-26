@@ -1,6 +1,6 @@
 #include "mem/ruby/structures/SnoopBasicPred.hh"
 #include "mem/ruby/system/System.hh"
-#include "debug/RubySnoopPred.hh"
+ #include "debug/RubySnoopPred.hh"
 #include "debug/RubySlicc.hh"
 
 using namespace std;

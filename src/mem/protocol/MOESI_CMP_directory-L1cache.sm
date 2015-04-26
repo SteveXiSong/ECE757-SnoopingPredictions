@@ -36,7 +36,8 @@ machine(L1Cache, "Directory protocol")
    bool send_evictions;
 
    // cs757 added
-   SnoopBasicPred * predictor;
+   // SnoopBasicPred * predictor;
+   OwnerPred * predictor;
 
    // Message Queues
    // From this node's L1 cache TO the network
