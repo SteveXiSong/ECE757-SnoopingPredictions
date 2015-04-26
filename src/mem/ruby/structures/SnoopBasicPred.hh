@@ -19,6 +19,7 @@ class SnoopBasicPred : public SimObject {
  public:
     //SnoopBasicPred(const SN)
     SnoopBasicPred(const Params *p);
+    //SnoopBasicPred();
     ~SnoopBasicPred();
 
     void regStats();
