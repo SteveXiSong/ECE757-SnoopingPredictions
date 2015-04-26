@@ -30,6 +30,7 @@ machine(L2Cache, "Token protocol")
 : CacheMemory * L2cache;
   Cycles response_latency := 2;
   Cycles request_latency := 2;
+  MulticastScoreboard * sb;
 
   // L2 BANK QUEUES
   // From local bank of L2 cache TO the network
@@ -753,6 +754,7 @@ machine(L2Cache, "Token protocol")
       out_msg.Type := CoherenceResponseType:DATA;
       out_msg.Sender := machineID;
       out_msg.SenderMachine := MachineType:L2Cache;
+      out_msg.PredictionMask.add(machineID);
       out_msg.Destination.addNetDest(tbe.L1_GetS_IDs);
       out_msg.DataBlk := tbe.DataBlk;
       // out_msg.Dirty := tbe.Dirty;
@@ -771,6 +773,7 @@ machine(L2Cache, "Token protocol")
       out_msg.Type := CoherenceResponseType:DATA_EXCLUSIVE;
       out_msg.Sender := machineID;
       out_msg.SenderMachine := MachineType:L2Cache;
+      out_msg.PredictionMask.add(machineID);
       out_msg.Destination.add(tbe.L1_GetX_ID);
       out_msg.DataBlk := tbe.DataBlk;
       out_msg.Dirty := tbe.Dirty;
@@ -788,6 +791,7 @@ machine(L2Cache, "Token protocol")
       out_msg.Type := CoherenceResponseType:DATA_EXCLUSIVE;
       out_msg.Sender := machineID;
       out_msg.SenderMachine := MachineType:L2Cache;
+      out_msg.PredictionMask.add(machineID);
       out_msg.Destination.addNetDest(tbe.L1_GetS_IDs);
       out_msg.DataBlk := tbe.DataBlk;
       out_msg.Dirty := tbe.Dirty;
@@ -802,6 +806,7 @@ machine(L2Cache, "Token protocol")
       out_msg.Type := CoherenceResponseType:DATA_EXCLUSIVE;
       out_msg.Sender := machineID;
       out_msg.SenderMachine := MachineType:L2Cache;
+      out_msg.PredictionMask.add(machineID);
       out_msg.Destination.add(tbe.Fwd_GetX_ID);
       out_msg.DataBlk := tbe.DataBlk;
       out_msg.Dirty := tbe.Dirty;
@@ -818,6 +823,7 @@ machine(L2Cache, "Token protocol")
         out_msg.Type := CoherenceResponseType:DATA;
         out_msg.Sender := machineID;
         out_msg.SenderMachine := MachineType:L2Cache;
+        out_msg.PredictionMask.add(machineID);
         out_msg.Destination.add(in_msg.Requestor);
         out_msg.DataBlk := tbe.DataBlk;
         // out_msg.Dirty := tbe.Dirty;
@@ -838,6 +844,7 @@ machine(L2Cache, "Token protocol")
       out_msg.Type := CoherenceResponseType:DATA;
       out_msg.Sender := machineID;
       out_msg.SenderMachine := MachineType:L2Cache;
+      out_msg.PredictionMask.add(machineID);
       out_msg.Destination.addNetDest(tbe.Fwd_GetS_IDs);
       out_msg.DataBlk := tbe.DataBlk;
       // out_msg.Dirty := tbe.Dirty;
@@ -857,6 +864,7 @@ machine(L2Cache, "Token protocol")
       out_msg.Type := CoherenceResponseType:DATA_EXCLUSIVE;
       out_msg.Sender := machineID;
       out_msg.SenderMachine := MachineType:L2Cache;
+      out_msg.PredictionMask.add(machineID);
       out_msg.Destination.addNetDest(tbe.Fwd_GetS_IDs);
       out_msg.DataBlk := tbe.DataBlk;
       out_msg.Dirty := tbe.Dirty;
@@ -875,6 +883,7 @@ machine(L2Cache, "Token protocol")
         out_msg.Type := CoherenceResponseType:DATA;
         out_msg.Sender := machineID;
         out_msg.SenderMachine := MachineType:L2Cache;
+        out_msg.PredictionMask.add(machineID);
         out_msg.Destination.add(in_msg.Requestor);
         out_msg.DataBlk := cache_entry.DataBlk;
         // out_msg.Dirty := cache_entry.Dirty;
@@ -896,6 +905,7 @@ machine(L2Cache, "Token protocol")
         out_msg.Type := CoherenceResponseType:DATA_EXCLUSIVE;
         out_msg.Sender := machineID;
         out_msg.SenderMachine := MachineType:L2Cache;
+        out_msg.PredictionMask.add(machineID);
         out_msg.Destination.add(in_msg.Requestor);
         out_msg.DataBlk := cache_entry.DataBlk;
         out_msg.Dirty := cache_entry.Dirty;
@@ -915,6 +925,7 @@ machine(L2Cache, "Token protocol")
         out_msg.Type := CoherenceResponseType:DATA_EXCLUSIVE;
         out_msg.Sender := machineID;
         out_msg.SenderMachine := MachineType:L2Cache;
+        out_msg.PredictionMask.add(machineID);
         out_msg.Destination.add(in_msg.Requestor);
         out_msg.DataBlk := cache_entry.DataBlk;
         out_msg.Dirty := cache_entry.Dirty;
@@ -935,6 +946,7 @@ machine(L2Cache, "Token protocol")
         out_msg.Type := CoherenceResponseType:DATA;
         out_msg.Sender := machineID;
         out_msg.SenderMachine := MachineType:L2Cache;
+        out_msg.PredictionMask.add(machineID);
         out_msg.Destination.add(in_msg.Requestor);
         out_msg.DataBlk := cache_entry.DataBlk;
         // out_msg.Dirty := cache_entry.Dirty;
@@ -955,6 +967,7 @@ machine(L2Cache, "Token protocol")
         out_msg.Type := CoherenceResponseType:DATA_EXCLUSIVE;
         out_msg.Sender := machineID;
         out_msg.SenderMachine := MachineType:L2Cache;
+        out_msg.PredictionMask.add(machineID);
         out_msg.Destination.add(in_msg.Requestor);
         out_msg.DataBlk := cache_entry.DataBlk;
         out_msg.Dirty := cache_entry.Dirty;

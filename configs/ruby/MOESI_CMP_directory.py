@@ -146,6 +146,8 @@ def create_system(options, system, dma_ports, ruby_system):
         l2_cntrl.L1RequestToL2Cache = ruby_system.network.master
         l2_cntrl.responseToL2Cache = ruby_system.network.master
 
+        l2_cntrl.sb = MulticastScoreboard()
+
 
     phys_mem_size = sum(map(lambda r: r.size(), system.mem_ranges))
     assert(phys_mem_size % options.num_dirs == 0)
