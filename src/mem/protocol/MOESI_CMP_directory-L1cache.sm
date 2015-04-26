@@ -294,11 +294,6 @@ machine(L1Cache, "Directory protocol")
         } else if (in_msg.Type == CoherenceRequestType:GETS) {
           trigger(Event:Fwd_GETS, in_msg.Addr,
                   getCacheEntry(in_msg.Addr), TBEs[in_msg.Addr]);
-        // ece757-Steve
-        } else if (in_msg.Type == CoherenceRequestType:MC_GETS) { 
-            predictor.profileInMsg(predictor.getGETS(), L1Dcache.isTagPresent(in_msg.Addr));
-            requestNetwork_in.dequeue();
-        // ------------
         } else if (in_msg.Type == CoherenceRequestType:DMA_READ) {
           trigger(Event:Fwd_DMA, in_msg.Addr,
                   getCacheEntry(in_msg.Addr), TBEs[in_msg.Addr]);
@@ -423,14 +418,10 @@ machine(L1Cache, "Directory protocol")
     peek(mandatoryQueue_in, RubyRequest) {
       enqueue(requestNetwork_out, RequestMsg,  request_latency) {
         out_msg.Addr := address;
-        out_msg.Type := CoherenceRequestType:MC_GETS;
+        out_msg.Type := CoherenceRequestType:GETS;
         out_msg.Requestor := machineID;
         out_msg.RequestorMachine := MachineType:L1Cache;
-        // cs757-steve:
-        //out_msg.Destination.addNetDest(predictor.getPrediction(address, machineID));
-        //out_msg.Destination := predictor.getPrediction(address, machineID);
-        //out_msg.Destination.addNetDest(broadcast(MachineType:L2Cache));
-        out_msg.Destination.broadcast(MachineType:L1Cache);
+        out_msg.PredictionMask := predictor.getPrediction(address, machineID);
         out_msg.Destination.add(mapAddressToRange(address, MachineType:L2Cache,
               l2_select_low_bit, l2_select_num_bits, intToID(0)));
         out_msg.MessageSize := MessageSizeType:Request_Control;
@@ -447,8 +438,7 @@ machine(L1Cache, "Directory protocol")
         out_msg.Type := CoherenceRequestType:GETX;
         out_msg.Requestor := machineID;
         out_msg.RequestorMachine := MachineType:L1Cache;
-        // cs757-steve:
-        //out_msg.Destination.addNetDest(predictor.getPrediction(address, machineID));
+        out_msg.PredictionMask := predictor.getPrediction(address, machineID);
         out_msg.Destination.add(mapAddressToRange(address, MachineType:L2Cache,
               l2_select_low_bit, l2_select_num_bits, intToID(0)));
         out_msg.MessageSize := MessageSizeType:Request_Control;
@@ -464,6 +454,7 @@ machine(L1Cache, "Directory protocol")
       out_msg.Type := CoherenceRequestType:PUTX;
       out_msg.Requestor := machineID;
       out_msg.RequestorMachine := MachineType:L1Cache;
+      out_msg.PredictionMask := predictor.getPrediction(address, machineID);
       out_msg.Destination.add(mapAddressToRange(address, MachineType:L2Cache,
               l2_select_low_bit, l2_select_num_bits, intToID(0)));
       out_msg.MessageSize := MessageSizeType:Writeback_Control;
@@ -476,6 +467,7 @@ machine(L1Cache, "Directory protocol")
       out_msg.Type := CoherenceRequestType:PUTO;
       out_msg.Requestor := machineID;
       out_msg.RequestorMachine := MachineType:L1Cache;
+      out_msg.PredictionMask := predictor.getPrediction(address, machineID);
       out_msg.Destination.add(mapAddressToRange(address, MachineType:L2Cache,
               l2_select_low_bit, l2_select_num_bits, intToID(0)));
       out_msg.MessageSize := MessageSizeType:Writeback_Control;
@@ -488,6 +480,7 @@ machine(L1Cache, "Directory protocol")
       out_msg.Type := CoherenceRequestType:PUTS;
       out_msg.Requestor := machineID;
       out_msg.RequestorMachine := MachineType:L1Cache;
+      out_msg.PredictionMask := predictor.getPrediction(address, machineID);
       out_msg.Destination.add(mapAddressToRange(address, MachineType:L2Cache,
               l2_select_low_bit, l2_select_num_bits, intToID(0)));
       out_msg.MessageSize := MessageSizeType:Writeback_Control;
@@ -503,6 +496,7 @@ machine(L1Cache, "Directory protocol")
           out_msg.Type := CoherenceResponseType:DATA;
           out_msg.Sender := machineID;
           out_msg.SenderMachine := MachineType:L1Cache;
+          out_msg.PredictionMask := predictor.getPrediction(address, machineID);
           out_msg.Destination.add(mapAddressToRange(address, MachineType:L2Cache,
               l2_select_low_bit, l2_select_num_bits, intToID(0)));
           out_msg.DataBlk := cache_entry.DataBlk;
@@ -519,6 +513,7 @@ machine(L1Cache, "Directory protocol")
           out_msg.Type := CoherenceResponseType:DATA;
           out_msg.Sender := machineID;
           out_msg.SenderMachine := MachineType:L1Cache;
+          out_msg.PredictionMask := predictor.getPrediction(address, machineID);
           out_msg.Destination.add(in_msg.Requestor);
           out_msg.DataBlk := cache_entry.DataBlk;
           // out_msg.Dirty := cache_entry.Dirty;
@@ -538,6 +533,7 @@ machine(L1Cache, "Directory protocol")
       out_msg.Type := CoherenceResponseType:DATA;
       out_msg.Sender := machineID;
       out_msg.SenderMachine := MachineType:L1Cache;
+      out_msg.PredictionMask := predictor.getPrediction(address, machineID);
       out_msg.Destination.add(mapAddressToRange(address, MachineType:L2Cache,
               l2_select_low_bit, l2_select_num_bits, intToID(0)));
       out_msg.DataBlk := cache_entry.DataBlk;
@@ -556,6 +552,7 @@ machine(L1Cache, "Directory protocol")
           out_msg.Type := CoherenceResponseType:DATA_EXCLUSIVE;
           out_msg.Sender := machineID;
           out_msg.SenderMachine := MachineType:L1Cache;
+          out_msg.PredictionMask := predictor.getPrediction(address, machineID);
           out_msg.Destination.add(mapAddressToRange(address, MachineType:L2Cache,
               l2_select_low_bit, l2_select_num_bits, intToID(0)));
           out_msg.DataBlk := cache_entry.DataBlk;
@@ -571,6 +568,7 @@ machine(L1Cache, "Directory protocol")
           out_msg.Type := CoherenceResponseType:DATA_EXCLUSIVE;
           out_msg.Sender := machineID;
           out_msg.SenderMachine := MachineType:L1Cache;
+          out_msg.PredictionMask := predictor.getPrediction(address, machineID);
           out_msg.Destination.add(in_msg.Requestor);
           out_msg.DataBlk := cache_entry.DataBlk;
           out_msg.Dirty := cache_entry.Dirty;
@@ -744,6 +742,7 @@ machine(L1Cache, "Directory protocol")
           out_msg.Type := CoherenceResponseType:DATA;
           out_msg.Sender := machineID;
           out_msg.SenderMachine := MachineType:L1Cache;
+          out_msg.PredictionMask := predictor.getPrediction(address, machineID);
           out_msg.Destination.add(in_msg.Requestor);
           out_msg.DataBlk := tbe.DataBlk;
           // out_msg.Dirty := tbe.Dirty;
@@ -758,6 +757,7 @@ machine(L1Cache, "Directory protocol")
           out_msg.Type := CoherenceResponseType:DATA;
           out_msg.Sender := machineID;
           out_msg.SenderMachine := MachineType:L1Cache;
+          out_msg.PredictionMask := predictor.getPrediction(address, machineID);
           out_msg.Destination.add(mapAddressToRange(address, MachineType:L2Cache,
               l2_select_low_bit, l2_select_num_bits, intToID(0)));
           out_msg.DataBlk := tbe.DataBlk;
@@ -779,6 +779,7 @@ machine(L1Cache, "Directory protocol")
           out_msg.Type := CoherenceResponseType:DATA_EXCLUSIVE;
           out_msg.Sender := machineID;
           out_msg.SenderMachine := MachineType:L1Cache;
+          out_msg.PredictionMask := predictor.getPrediction(address, machineID);
           out_msg.Destination.add(in_msg.Requestor);
           out_msg.DataBlk := tbe.DataBlk;
           out_msg.Dirty := tbe.Dirty;
@@ -792,6 +793,7 @@ machine(L1Cache, "Directory protocol")
           out_msg.Type := CoherenceResponseType:DATA_EXCLUSIVE;
           out_msg.Sender := machineID;
           out_msg.SenderMachine := MachineType:L1Cache;
+          out_msg.PredictionMask := predictor.getPrediction(address, machineID);
           out_msg.Destination.add(mapAddressToRange(address, MachineType:L2Cache,
               l2_select_low_bit, l2_select_num_bits, intToID(0)));
           out_msg.DataBlk := tbe.DataBlk;
