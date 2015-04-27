@@ -595,15 +595,33 @@ machine(L2Cache, "Token protocol")
       peek(L1requestNetwork_in, RequestMsg) {
         assert(in_msg.Destination.isElement(machineID));
         if (in_msg.Type == CoherenceRequestType:GETX) {
+          if (localDirectory.isTagPresent(in_msg.Addr)) {
+            sb.record_GETX(in_msg.Requestor, in_msg.PredictionMask, localDirectory[in_msg.Addr].Sharers,
+                           localDirectory[in_msg.Addr].OwnerValid, localDirectory[in_msg.Addr].Owner);
+          } else {
+            sb.record_GETX(in_msg.Requestor, in_msg.PredictionMask);
+          }
           trigger(Event:L1_GETX, in_msg.Addr,
                   getCacheEntry(in_msg.Addr), TBEs[in_msg.Addr]);
         } else if (in_msg.Type == CoherenceRequestType:GETS) {
-            trigger(Event:L1_GETS, in_msg.Addr,
-                  getCacheEntry(in_msg.Addr), TBEs[in_msg.Addr]);
+          if (localDirectory.isTagPresent(in_msg.Addr)) {
+            sb.record_GETS(in_msg.Requestor, in_msg.PredictionMask, localDirectory[in_msg.Addr].Sharers,
+                           localDirectory[in_msg.Addr].OwnerValid, localDirectory[in_msg.Addr].Owner);
+          } else {
+            sb.record_GETS(in_msg.Requestor, in_msg.PredictionMask);
+          }
+          trigger(Event:L1_GETS, in_msg.Addr,
+                getCacheEntry(in_msg.Addr), TBEs[in_msg.Addr]);
         } else if (in_msg.Type == CoherenceRequestType:PUTO) {
           trigger(Event:L1_PUTO, in_msg.Addr,
                   getCacheEntry(in_msg.Addr), TBEs[in_msg.Addr]);
         } else if (in_msg.Type == CoherenceRequestType:PUTX) {
+          if (localDirectory.isTagPresent(in_msg.Addr)) {
+            sb.record_PUTX(in_msg.Requestor, in_msg.PredictionMask, localDirectory[in_msg.Addr].Sharers,
+                           localDirectory[in_msg.Addr].OwnerValid, localDirectory[in_msg.Addr].Owner);
+          } else {
+            sb.record_PUTX(in_msg.Requestor, in_msg.PredictionMask);
+          }
           trigger(Event:L1_PUTX, in_msg.Addr,
                   getCacheEntry(in_msg.Addr), TBEs[in_msg.Addr]);
         } else if (in_msg.Type == CoherenceRequestType:PUTS) {
