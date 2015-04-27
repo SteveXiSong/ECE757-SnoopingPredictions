@@ -102,6 +102,10 @@ structure (SnoopBasicPred, external = "yes", non_obj="yes") {
     int getPUTX();
 }
 
+structure (StickyPred, external = "yes", non_obj="yes") {
+    NetDest getPrediction(Address addr, MachineID local);
+}
+
 structure (Sequencer, external = "yes") {
   void readCallback(Address, DataBlock);
   void readCallback(Address, DataBlock, bool);

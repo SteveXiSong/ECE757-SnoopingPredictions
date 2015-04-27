@@ -17,14 +17,12 @@
 
 class SnoopBasicPred : public SimObject {
  public:
-    //SnoopBasicPred(const SN)
     SnoopBasicPred(const Params *p);
-    //SnoopBasicPred();
     ~SnoopBasicPred();
 
-    void regStats();
+    virtual void regStats();
 
-    NetDest getPrediction(Address addr, MachineID local);
+    virtual NetDest getPrediction(Address addr, MachineID local);
 
     enum CoherenceReqType{
         GETS,
@@ -33,7 +31,7 @@ class SnoopBasicPred : public SimObject {
         PUTX,
     };
 
-    void profileInMsg(int reqNum, bool succ);
+    virtual void profileInMsg(int reqNum, bool succ);
     void profilePred(int reqNum, bool succ);
 
     int getGETS();

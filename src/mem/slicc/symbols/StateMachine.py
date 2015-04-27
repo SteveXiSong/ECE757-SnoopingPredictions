@@ -47,6 +47,7 @@ python_class_map = {
                     "Cycles":"Cycles",
                     "SnoopBasicPred":"RubySnoopBasicPred",
                     "MulticastScoreboard":"MulticastScoreboard",
+                    "StickyPred":"RubyStickyPred",
                    }
 
 class StateMachine(Symbol):

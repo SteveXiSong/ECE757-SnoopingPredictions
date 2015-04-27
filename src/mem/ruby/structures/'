@@ -1,0 +1,32 @@
+#ifndef __MEM_RUBY_COMMON_STICKYPRED_HH__
+#define __MEM_RUBY_COMMON_STICKYPRED_HH__
+
+#include <iostream>
+#include <string>
+#include <stdlib.h>
+#include <map>
+
+#include "mem/ruby/structures/SnoopBasicPred.hh"
+#include "params/RubyStickyPred.hh"
+
+using namespace std;
+
+class StickyPred : public SnoopBasicPred {
+ public:
+    StickyPred(const Params *p);
+    ~StickyPred();
+
+    NetDest getPrediction(Address addr, MachineID local);
+
+    // MANDATORY SIM OBJECT METHODS
+    StickyPred& operator=(const StickyPred& obj);
+
+ private:
+
+    int size_SnoopTable;
+
+    typedef pair<NetDest, MachineID> PredEntry_t;
+    typedef map<Address, PredEntry_t> PredCache_t;
+};
+
+#endif // __MEM_RUBY_COMMON_SNOOPBASICPRED_HH__
