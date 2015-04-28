@@ -102,6 +102,8 @@ structure (SnoopBasicPred, external = "yes", non_obj="yes") {
 
 structure (OwnerPred, external = "yes", non_obj="yes") {
     NetDest getPrediction(Address addr, MachineID local);
+    NetDest getPrediction(Address pc, Address addr, MachineID local);
+    void updatePredictionTable(Address pc, MachineID sender);
     void profileRequestMsg(int);
     int getGETS();
 }

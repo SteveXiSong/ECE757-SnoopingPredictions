@@ -23,7 +23,7 @@ class OwnerPred : public SimObject {
     ~OwnerPred();
 
     NetDest getPrediction(Address pc, Address addr, MachineID local);
-    NetDest getPrediction(Address addr, MachineID local);
+    void updatePredictionTable( Address pc, MachineID realOwner );
 
     enum CoherenceReqType{
         GETS,
@@ -67,19 +67,18 @@ class OwnerPredL1Table
   ~OwnerPredL1Table();
 
   private:
-  inline unsigned getConfdCnt() const {
-     return _confdCnt;
-  }
-  inline unsigned getConfdPtr() const {
-    return _confdPtr;
-  }
-  inline unsigned getNodePtr() const {
-    return _confdPtr;
-  }
+  inline unsigned getConfdCnt() const { return _confdCnt; }
+  inline unsigned getConfdPtr() const { return _confdPtr; }
+  inline NodeID getNodePtr() const { return _confdPtr; }
+
+  inline void confdCntUp() { if( _confdCnt < 3 ) ++ _confdCnt; }
+  inline void confdCntDn() { if( _confdCnt > 0 ) -- _confdCnt; }
+  inline void confdPtrUp() { if( _confdPtr < 3 ) ++ _confdPtr; }
+  inline void confdPtrDn() { if( _confdPtr > 0 ) -- _confdPtr; }
 
   unsigned _confdCnt : 2;   //  2-bit saturating counter regarding confidence about $2$ transfer;
   unsigned _confdPtr : 2;   //  2-bit saturating counter
-  unsigned _nodePtr;        //  predicted target node
+  NodeID _nodePtr;          //  predicted target node
 };
 
 class OwnerPredL2Table
@@ -91,21 +90,26 @@ class OwnerPredL2Table
   ~OwnerPredL2Table();
 
   private:
-  inline unsigned getConfdPtr() const {
-    return _confdPtr;
-  }
-  inline unsigned getNodePtr(size_t idx) const {
+  inline unsigned getConfdPtr() const { return _confdPtr; }
+
+  NodeID getNodePtr(size_t idx) const;
+  bool getValidBit(size_t idx) const;
+
+  inline void confdPtrUp() { if( _confdPtr < 3 ) ++ _confdPtr; }
+  inline void confdPtrDn() { if( _confdPtr > 0 ) -- _confdPtr; }
+
+  inline void setValidBit(size_t idx) {
     assert( 0 <= idx && idx < 4 );
-     return _nodePtrArray[idx];
-  }
-  inline unsigned getValidBit(size_t idx) const {
-    assert( 0 <= idx && idx < 4 );
-    return _nodeValidArray[idx];
+    _nodeValidArray[idx] = true;
   }
 
+  void replaceNodePtr( size_t idx, NodeID ownerID );
+  void updateWithRealOwnerID( NodeID ownerID );
+
   unsigned _confdPtr : 2;
-  unsigned _nodePtrArray[4];    //  predicted target node array
-  bool _nodeValidArray[4];      //  prediction valid array
+  NodeID _nodePtrArray[4];          //  predicted target node array
+  unsigned _missedTimesArray[4];
+  bool _nodeValidArray[4];          //  prediction valid array
 
 };
 
