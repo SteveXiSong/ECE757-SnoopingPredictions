@@ -115,7 +115,7 @@ def create_system(options, system, dma_ports, ruby_system):
         l1_cntrl.responseToL1Cache =  ruby_system.network.master
 
         # added for 757 project
-        l1_cntrl.predictor = RubySnoopBasicPred()
+        l1_cntrl.predictor = RubyOwnerPred()
         l1_cntrl.sequencer = cpu_seq
 
 
