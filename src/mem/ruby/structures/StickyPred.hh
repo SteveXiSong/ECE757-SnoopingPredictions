@@ -28,7 +28,6 @@ class PredBlock_t{
 typedef unsigned int PredCacheIndex;
 typedef map<PredCacheIndex, PredBlock_t*> PredCache_t;
 
-
 class StickyPred : public SnoopBasicPred {
  public:
     StickyPred(const Params *p);
@@ -39,6 +38,10 @@ class StickyPred : public SnoopBasicPred {
     NetDest getPredCachePrediction(PredCacheIndex index);
     bool updatePredCache(PredCacheIndex thisIndex);
     PredCacheIndex getPredCacheIndex(Address addr);
+    bool invalidatePredCacheEntry(Address addr, MachineID inv);
+    Address getPredCacheTag(PredCacheIndex index);
+    void resetPredCacheTag(PredCacheIndex index, MachineID inv);
+    bool isValidEntry(PredCacheIndex index);
 
     // MANDATORY SIM OBJECT METHODS
     StickyPred& operator=(const StickyPred& obj);
@@ -47,6 +50,7 @@ class StickyPred : public SnoopBasicPred {
     int size_PredTable;
     int num_StickyOneside;
 
+    MachineID localMachine;
     /* the pred cache table's organization is like this
      * index ->|tag(address) |  mask | last invalidator |
      *         |             |       |                  |

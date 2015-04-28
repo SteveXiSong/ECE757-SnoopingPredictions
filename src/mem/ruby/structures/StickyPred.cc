@@ -25,6 +25,7 @@ RubyStickyPredParams::create()
     return new StickyPred(this);
 }
 
+// this is for Ruby machine
 NetDest StickyPred::getPrediction(Address addr, MachineID local) {
     NetDest prediction;
 
@@ -37,13 +38,24 @@ NetDest StickyPred::getPrediction(Address addr, MachineID local) {
       prediction.add(mach);
     }
 
-    // get prediction from PredCache
+    // TODO: this could be not totally good
+    PredCacheIndex index = getPredCacheIndex(addr);
+    if(isValidEntry(index) == true){
+        // get prediction from PredCache
+        bool result = updatePredCache(index);
+        if( result == false){
+            assert(0); // update pred cache failed
+        }
+        prediction = prediction.OR(getPredCachePrediction(index));
+    }
 
     DPRINTF(RubySnoopPred, "[StickyPred] L1 Prediction: %s\n", prediction);
     return prediction;
 }
 
 NetDest StickyPred::getPredCachePrediction(PredCacheIndex index ){
+    assert((*predCache)[index]->tag.getAddress() != 0);
+
     NetDest prediction = (*predCache)[index]->prediction;
     return prediction;
 }
@@ -55,11 +67,6 @@ void StickyPred::addStikcyPredEntry(Address addr, MachineID provider, NetDest pr
 
     pair<PredCacheIndex, PredBlock_t*> newEntry = make_pair(index, newBlock);
     predCache->insert( newEntry );
-
-    bool result = updatePredCache(index);
-    if( result == false){
-        assert(0); // update pred cache failed
-    }
 }
 
 PredCacheIndex StickyPred::getPredCacheIndex(Address addr){
@@ -76,7 +83,10 @@ bool StickyPred::updatePredCache(PredCacheIndex thisIndex){
 
     // for positive side
     for( int i = 1; i <= num_StickyOneside; i++ ){
-        NetDest itPred = (*predCache)[(thisIndex + i)%size_PredTable]->prediction;
+        PredCacheIndex itIndex = (thisIndex + i)%size_PredTable;
+        if( isValidEntry(itIndex) == false)
+            continue;
+        NetDest itPred = getPredCachePrediction(itIndex);
         thisPred = thisPred.OR(itPred);
     }
 
@@ -90,4 +100,35 @@ bool StickyPred::updatePredCache(PredCacheIndex thisIndex){
     (*predCache)[thisIndex]->prediction = thisPred;
 
     return true;
+}
+
+Address StickyPred::getPredCacheTag(PredCacheIndex index){
+    return (*predCache)[index]->tag;
+}
+
+bool StickyPred::invalidatePredCacheEntry(Address addr, MachineID inv){
+    PredCacheIndex thisIndex = getPredCacheIndex(addr);
+    if( addr.getAddress() == getPredCacheTag(thisIndex).getAddress() ){
+        resetPredCacheTag(thisIndex, inv);
+        return true;
+    }
+    else{
+        // is not presented
+        return false;
+    }
+    return false;
+}
+
+void StickyPred::resetPredCacheTag(PredCacheIndex index, MachineID inv){
+    (*predCache)[index]->tag.setAddress(0);
+    (*predCache)[index]->prediction.clear();
+    (*predCache)[index]->invalidator = inv;
+}
+
+bool StickyPred::isValidEntry(PredCacheIndex index){
+    if( predCache->find(index) == predCache->end() ||
+            (*predCache)[index]->tag.getAddress() == 0 )
+        return false;
+    else
+        return true;
 }
