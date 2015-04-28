@@ -773,6 +773,10 @@ machine(L2Cache, "Token protocol")
       out_msg.Sender := machineID;
       out_msg.SenderMachine := MachineType:L2Cache;
       out_msg.PredictionMask.add(machineID);
+      if(localDirectory.isTagPresent(address)){
+        out_msg.PredictionMask.addNetDest(localDirectory[address].Sharers);
+        if(localDirectory[address].OwnerValid) {out_msg.PredictionMask.add(localDirectory[address].Owner);}
+      }
       out_msg.Destination.addNetDest(tbe.L1_GetS_IDs);
       out_msg.DataBlk := tbe.DataBlk;
       // out_msg.Dirty := tbe.Dirty;
@@ -792,6 +796,10 @@ machine(L2Cache, "Token protocol")
       out_msg.Sender := machineID;
       out_msg.SenderMachine := MachineType:L2Cache;
       out_msg.PredictionMask.add(machineID);
+      if(localDirectory.isTagPresent(address)){
+        out_msg.PredictionMask.addNetDest(localDirectory[address].Sharers);
+        if(localDirectory[address].OwnerValid) {out_msg.PredictionMask.add(localDirectory[address].Owner);}
+      }
       out_msg.Destination.add(tbe.L1_GetX_ID);
       out_msg.DataBlk := tbe.DataBlk;
       out_msg.Dirty := tbe.Dirty;
@@ -810,6 +818,10 @@ machine(L2Cache, "Token protocol")
       out_msg.Sender := machineID;
       out_msg.SenderMachine := MachineType:L2Cache;
       out_msg.PredictionMask.add(machineID);
+      if(localDirectory.isTagPresent(address)){
+        out_msg.PredictionMask.addNetDest(localDirectory[address].Sharers);
+        if(localDirectory[address].OwnerValid) {out_msg.PredictionMask.add(localDirectory[address].Owner);}
+      }
       out_msg.Destination.addNetDest(tbe.L1_GetS_IDs);
       out_msg.DataBlk := tbe.DataBlk;
       out_msg.Dirty := tbe.Dirty;
@@ -825,6 +837,10 @@ machine(L2Cache, "Token protocol")
       out_msg.Sender := machineID;
       out_msg.SenderMachine := MachineType:L2Cache;
       out_msg.PredictionMask.add(machineID);
+      if(localDirectory.isTagPresent(address)){
+        out_msg.PredictionMask.addNetDest(localDirectory[address].Sharers);
+        if(localDirectory[address].OwnerValid) {out_msg.PredictionMask.add(localDirectory[address].Owner);}
+      }
       out_msg.Destination.add(tbe.Fwd_GetX_ID);
       out_msg.DataBlk := tbe.DataBlk;
       out_msg.Dirty := tbe.Dirty;
@@ -842,6 +858,10 @@ machine(L2Cache, "Token protocol")
         out_msg.Sender := machineID;
         out_msg.SenderMachine := MachineType:L2Cache;
         out_msg.PredictionMask.add(machineID);
+        if(localDirectory.isTagPresent(address)){
+          out_msg.PredictionMask.addNetDest(localDirectory[address].Sharers);
+          if(localDirectory[address].OwnerValid) {out_msg.PredictionMask.add(localDirectory[address].Owner);}
+        }
         out_msg.Destination.add(in_msg.Requestor);
         out_msg.DataBlk := tbe.DataBlk;
         // out_msg.Dirty := tbe.Dirty;
@@ -863,6 +883,10 @@ machine(L2Cache, "Token protocol")
       out_msg.Sender := machineID;
       out_msg.SenderMachine := MachineType:L2Cache;
       out_msg.PredictionMask.add(machineID);
+      if(localDirectory.isTagPresent(address)){
+        out_msg.PredictionMask.addNetDest(localDirectory[address].Sharers);
+        if(localDirectory[address].OwnerValid) {out_msg.PredictionMask.add(localDirectory[address].Owner);}
+      }
       out_msg.Destination.addNetDest(tbe.Fwd_GetS_IDs);
       out_msg.DataBlk := tbe.DataBlk;
       // out_msg.Dirty := tbe.Dirty;
@@ -883,6 +907,10 @@ machine(L2Cache, "Token protocol")
       out_msg.Sender := machineID;
       out_msg.SenderMachine := MachineType:L2Cache;
       out_msg.PredictionMask.add(machineID);
+      if(localDirectory.isTagPresent(address)){
+        out_msg.PredictionMask.addNetDest(localDirectory[address].Sharers);
+        if(localDirectory[address].OwnerValid) {out_msg.PredictionMask.add(localDirectory[address].Owner);}
+      }
       out_msg.Destination.addNetDest(tbe.Fwd_GetS_IDs);
       out_msg.DataBlk := tbe.DataBlk;
       out_msg.Dirty := tbe.Dirty;
@@ -902,6 +930,10 @@ machine(L2Cache, "Token protocol")
         out_msg.Sender := machineID;
         out_msg.SenderMachine := MachineType:L2Cache;
         out_msg.PredictionMask.add(machineID);
+        if(localDirectory.isTagPresent(address)){
+          out_msg.PredictionMask.addNetDest(localDirectory[address].Sharers);
+          if(localDirectory[address].OwnerValid) {out_msg.PredictionMask.add(localDirectory[address].Owner);}
+        }
         out_msg.Destination.add(in_msg.Requestor);
         out_msg.DataBlk := cache_entry.DataBlk;
         // out_msg.Dirty := cache_entry.Dirty;
@@ -924,6 +956,10 @@ machine(L2Cache, "Token protocol")
         out_msg.Sender := machineID;
         out_msg.SenderMachine := MachineType:L2Cache;
         out_msg.PredictionMask.add(machineID);
+        if(localDirectory.isTagPresent(address)){
+          out_msg.PredictionMask.addNetDest(localDirectory[address].Sharers);
+          if(localDirectory[address].OwnerValid) {out_msg.PredictionMask.add(localDirectory[address].Owner);}
+        }
         out_msg.Destination.add(in_msg.Requestor);
         out_msg.DataBlk := cache_entry.DataBlk;
         out_msg.Dirty := cache_entry.Dirty;
@@ -944,6 +980,10 @@ machine(L2Cache, "Token protocol")
         out_msg.Sender := machineID;
         out_msg.SenderMachine := MachineType:L2Cache;
         out_msg.PredictionMask.add(machineID);
+        if(localDirectory.isTagPresent(address)){
+          out_msg.PredictionMask.addNetDest(localDirectory[address].Sharers);
+          if(localDirectory[address].OwnerValid) {out_msg.PredictionMask.add(localDirectory[address].Owner);}
+        }
         out_msg.Destination.add(in_msg.Requestor);
         out_msg.DataBlk := cache_entry.DataBlk;
         out_msg.Dirty := cache_entry.Dirty;
@@ -965,6 +1005,10 @@ machine(L2Cache, "Token protocol")
         out_msg.Sender := machineID;
         out_msg.SenderMachine := MachineType:L2Cache;
         out_msg.PredictionMask.add(machineID);
+        if(localDirectory.isTagPresent(address)){
+          out_msg.PredictionMask.addNetDest(localDirectory[address].Sharers);
+          if(localDirectory[address].OwnerValid) {out_msg.PredictionMask.add(localDirectory[address].Owner);}
+        }
         out_msg.Destination.add(in_msg.Requestor);
         out_msg.DataBlk := cache_entry.DataBlk;
         // out_msg.Dirty := cache_entry.Dirty;
@@ -986,6 +1030,10 @@ machine(L2Cache, "Token protocol")
         out_msg.Sender := machineID;
         out_msg.SenderMachine := MachineType:L2Cache;
         out_msg.PredictionMask.add(machineID);
+        if(localDirectory.isTagPresent(address)){
+          out_msg.PredictionMask.addNetDest(localDirectory[address].Sharers);
+          if(localDirectory[address].OwnerValid) {out_msg.PredictionMask.add(localDirectory[address].Owner);}
+        }
         out_msg.Destination.add(in_msg.Requestor);
         out_msg.DataBlk := cache_entry.DataBlk;
         out_msg.Dirty := cache_entry.Dirty;

@@ -14,8 +14,12 @@ MulticastScoreboard::MulticastScoreboard(const Params *p) : SimObject(p)
   total_nodes_predicted = 0;
   extra_nodes_predicted = 0;
   perfect_nodes_predicted = 0;
-  accurate_predictions = 0;
-  l2_predictions = 0;
+  accurate_GETS_predictions = 0;
+  accurate_GETX_predictions = 0;
+  accurate_PUTX_predictions = 0;
+  l2_GETS_services = 0;
+  l2_GETX_services = 0;
+  l2_PUTX_services = 0;
 }; 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -38,10 +42,10 @@ void MulticastScoreboard::record_GETS(MachineID l1, NetDest pred_set, NetDest sh
 
   // update prediction accuracy data
   if(!owner_valid || owner.type == MachineType_L2Cache) {
-    accurate_predictions++;
-    l2_predictions++;
+    accurate_GETS_predictions++;
+    l2_GETS_services++;
   } else if(pred_set.isElement(owner)) {
-    accurate_predictions++;
+    accurate_GETS_predictions++;
   }
 }
 
@@ -64,8 +68,8 @@ void MulticastScoreboard::record_GETS(MachineID l1, NetDest pred_set)
   }
 
   // update prediction accuracy data
-  accurate_predictions++;
-  l2_predictions++;
+  accurate_GETS_predictions++;
+  l2_GETS_services++;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -89,10 +93,10 @@ void MulticastScoreboard::record_GETX(MachineID l1, NetDest pred_set, NetDest sh
   // update accuracy counts
   if(sharers.isSubset(pred_set)) {
     if(!owner_valid || owner.type == MachineType_L2Cache) {
-      accurate_predictions++;
-      l2_predictions++;
+      accurate_GETX_predictions++;
+      l2_GETX_services++;
     } else if(pred_set.isElement(owner)) {
-      accurate_predictions++;
+      accurate_GETX_predictions++;
     }
   }
 
@@ -117,8 +121,8 @@ void MulticastScoreboard::record_GETX(MachineID l1, NetDest pred_set)
   }
 
   // update accuracy counts
-  accurate_predictions++;
-  l2_predictions++; 
+  accurate_GETX_predictions++;
+  l2_GETX_services++; 
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -141,10 +145,10 @@ void MulticastScoreboard::record_PUTX(MachineID l1, NetDest pred_set, NetDest sh
   // update accuracy counts
   if(sharers.isSubset(pred_set)) {
     if(!owner_valid || owner.type == MachineType_L2Cache) {
-      accurate_predictions++;
-      l2_predictions++;
+      accurate_PUTX_predictions++;
+      l2_PUTX_services++;
     } else if(pred_set.isElement(owner)) {
-      accurate_predictions++;
+      accurate_PUTX_predictions++;
     }
   }
 }
@@ -168,8 +172,8 @@ void MulticastScoreboard::record_PUTX(MachineID l1, NetDest pred_set)
   }
 
   // update accuracy counts
-  accurate_predictions++;
-  l2_predictions++; 
+  accurate_PUTX_predictions++;
+  l2_PUTX_services++; 
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -205,14 +209,34 @@ void MulticastScoreboard::regStats()
         .desc("Total count of nodes predicted with perfect multicasts")
         ;
 
-    accurate_predictions
-        .name(name() + ".accurate_predictions")
-        .desc("Total count of accurately predicted multicasts")
+    accurate_GETS_predictions
+        .name(name() + ".accurate_GETS_predictions")
+        .desc("Total count of accurate GETS predictions")
         ;
 
-    l2_predictions
-        .name(name() + ".l2_predictions")
-        .desc("Total count of accurately predicted multicast servied by l2")
+    accurate_GETX_predictions
+        .name(name() + ".accurate_GETX_predictions")
+        .desc("Total count of accurate GETX predictions")
+        ;
+
+    accurate_PUTX_predictions
+        .name(name() + ".accurate_PUTX_predictions")
+        .desc("Total count of accurate PUTX predictions")
+        ;
+    
+    l2_GETS_services
+        .name(name() + ".l2_GETS_services")
+        .desc("Total count of GETS operations serviced by l2")
+        ;
+
+    l2_GETX_services
+        .name(name() + ".l2_GETX_services")
+        .desc("Total count of GETX operations serviced by l2")
+        ;
+
+    l2_PUTX_services
+        .name(name() + ".l2_PUTX_services")
+        .desc("Total count of PUTX operations serviced by l2")
         ;
 
     // Recorded Stats
@@ -234,17 +258,53 @@ void MulticastScoreboard::regStats()
         ;
     multicast_traffic_ratio = total_nodes_predicted / perfect_nodes_predicted;
 
-    prediction_accuracy
-        .name(name() + ".prediction_accuracy")
-        .desc("Percent accuracy of predictions made by L1's in system")
+    overall_prediction_accuracy
+        .name(name() + ".overall_prediction_accuracy")
+        .desc("Percent accuracy of all predictions made by L1's in system")
         ;
-    prediction_accuracy = accurate_predictions / (PUTX_count + GETX_count + GETS_count);
+    overall_prediction_accuracy = (accurate_GETS_predictions + accurate_GETX_predictions + accurate_PUTX_predictions) / (PUTX_count + GETX_count + GETS_count);
 
-    blocks_found_at_l2
-        .name(name() + ".block_found_at_l2")
-        .desc("Percent of blocks that were serviced by l2")
+    GETS_prediction_accuracy
+        .name(name() + ".GETS_prediction_accuracy")
+        .desc("Percent accuracy of all GETS predictions made by L1's in system")
         ;
-    blocks_found_at_l2 = l2_predictions / (PUTX_count + GETX_count + GETS_count);
+    GETS_prediction_accuracy = accurate_GETS_predictions / GETS_count;
+
+    GETX_prediction_accuracy
+        .name(name() + ".GETX_prediction_accuracy")
+        .desc("Percent accuracy of all GETX predictions made by L1's in system")
+        ;
+    GETX_prediction_accuracy = accurate_GETX_predictions / GETX_count;
+
+    PUTX_prediction_accuracy
+        .name(name() + ".PUTX_prediction_accuracy")
+        .desc("Percent accuracy of all PUTX predictions made by L1's in system")
+        ;
+    PUTX_prediction_accuracy = accurate_PUTX_predictions / PUTX_count;
+
+    overall_l2_accuracy
+        .name(name() + ".overall_l2_accuracy")
+        .desc("Percent of all predictions serviced by L2")
+        ;
+    overall_l2_accuracy = (l2_GETS_services + l2_GETX_services + l2_PUTX_services) / (PUTX_count + GETX_count + GETS_count);
+
+    GETS_l2_accuracy
+        .name(name() + ".GETS_l2_accuracy")
+        .desc("Percent of all GETS predictions serviced by L2")
+        ;
+    GETS_l2_accuracy = l2_GETS_services / GETS_count;
+
+    GETX_l2_accuracy
+        .name(name() + ".GETX_l2_accuracy")
+        .desc("Percent of all GETX predictions serviced by L2")
+        ;
+    GETX_l2_accuracy = l2_GETX_services / GETX_count;
+
+    PUTX_l2_accuracy
+        .name(name() + ".PUTX_l2_accuracy")
+        .desc("Percent of all PUTX predictions serviced by L2")
+        ;
+    PUTX_l2_accuracy = l2_PUTX_services / PUTX_count;
 }
 
 MulticastScoreboard *
