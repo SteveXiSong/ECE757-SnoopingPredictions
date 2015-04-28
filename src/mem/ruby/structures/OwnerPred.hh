@@ -14,6 +14,9 @@
 #include "mem/protocol/CacheRequestType.hh"
 #include "mem/protocol/CoherenceRequestType.hh"
 
+class OwnerPredL1Table;
+class OwnerPredL2Table;
+
 class OwnerPred : public SimObject {
  public:
     OwnerPred(const Params *p);
@@ -46,6 +49,19 @@ class OwnerPred : public SimObject {
 
  private:
     profileData_t profileData;
+    std::vector<OwnerPredL1Table> _L1TableEntryArray;
+    std::vector<OwnerPredL2Table> _L2TableEntryArray;
+    
+};
+
+class OwnerPredL1Table
+{
+  friend class OwnerPred;
+
+  OwnerPredL1Table() : _confdCnt(1), _confdPtr(1), _nodePtr(0) {}
+  unsigned _confdCnt : 2;   // 2-bit saturating counter regarding confidence about $2$ transfer;
+  unsigned _confdPtr : 2;   // 2-bit saturating counter
+  unsigned _nodePtr;
 };
 
 #endif 
