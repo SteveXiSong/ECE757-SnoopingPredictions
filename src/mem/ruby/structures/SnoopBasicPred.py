@@ -6,3 +6,4 @@ class RubySnoopBasicPred(SimObject):
     cxx_class = 'SnoopBasicPred'
     cxx_header = "mem/ruby/structures/SnoopBasicPred.hh"
 
+    numPredTableEntry = Param.Int(1024, "Number of predicton entries")

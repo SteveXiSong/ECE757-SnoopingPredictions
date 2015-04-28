@@ -10,10 +10,13 @@ typedef RubyStickyPredParams Params;
 StickyPred::StickyPred(const Params *p)
     :SnoopBasicPred(p)
 {
-    predCache.clear();
+    size_PredTable = 1024;
+    num_StickyOneside = 10;
+    predCache = new PredCache_t();
 }
 
 StickyPred::~StickyPred(){
+    delete predCache;
 }
 
 StickyPred *
@@ -40,22 +43,51 @@ NetDest StickyPred::getPrediction(Address addr, MachineID local) {
     return prediction;
 }
 
-NetDest StickyPred::getPredCacheNetDest(Address addr){
-    PredBlock_t getPredBlock= predCache.find(addr)->second;
-    return getPredBlock.first;
+NetDest StickyPred::getPredCachePrediction(PredCacheIndex index ){
+    NetDest prediction = (*predCache)[index]->prediction;
+    return prediction;
 }
 
 void StickyPred::addStikcyPredEntry(Address addr, MachineID provider, NetDest predMask){
-    pair<Address, PredBlock_t> newEntry = make_pair(addr, make_pair(predMask,provider));
-    predCache.insert( newEntry );
-    if(updatePredCache(addr) == true){
 
-    }else{
+    PredCacheIndex index = getPredCacheIndex(addr);
+    PredBlock_t *newBlock = new PredBlock_t(addr, predMask, provider);
+
+    pair<PredCacheIndex, PredBlock_t*> newEntry = make_pair(index, newBlock);
+    predCache->insert( newEntry );
+
+    bool result = updatePredCache(index);
+    if( result == false){
         assert(0); // update pred cache failed
     }
 }
 
-bool StickyPred::updatePredCache(Address addr){
+PredCacheIndex StickyPred::getPredCacheIndex(Address addr){
+    PredCacheIndex predIndex = addr.getAddress() % size_PredTable;
+    return predIndex;
+}
+
+bool StickyPred::updatePredCache(PredCacheIndex thisIndex){
+    assert(num_StickyOneside>=1);
+    if(num_StickyOneside*2 > size_PredTable)
+        return false;
+
+    NetDest thisPred = getPredCachePrediction(thisIndex);
+
+    // for positive side
+    for( int i = 1; i <= num_StickyOneside; i++ ){
+        NetDest itPred = (*predCache)[(thisIndex + i)%size_PredTable]->prediction;
+        thisPred = thisPred.OR(itPred);
+    }
+
+    // for negative side
+    for( int i = -1; i >= -num_StickyOneside; i-- ){
+        NetDest itPred = (*predCache)[(thisIndex + i)%size_PredTable]->prediction;
+        thisPred = thisPred.OR(itPred);
+    }
+
+    // update the entry
+    (*predCache)[thisIndex]->prediction = thisPred;
 
     return true;
 }

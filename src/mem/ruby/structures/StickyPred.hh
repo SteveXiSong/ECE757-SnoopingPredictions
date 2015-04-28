@@ -12,8 +12,22 @@
 
 using namespace std;
 
-typedef pair<NetDest, MachineID> PredBlock_t;
-typedef map<Address, PredBlock_t> PredCache_t;
+class PredBlock_t{
+    public:
+        PredBlock_t(Address Tag, NetDest Pred, MachineID Inv){
+            tag = Tag;
+            prediction = Pred;
+            invalidator = Inv;
+        }
+
+        NetDest prediction;
+        MachineID invalidator;
+        Address tag;
+};
+
+typedef unsigned int PredCacheIndex;
+typedef map<PredCacheIndex, PredBlock_t*> PredCache_t;
+
 
 class StickyPred : public SnoopBasicPred {
  public:
@@ -22,15 +36,22 @@ class StickyPred : public SnoopBasicPred {
 
     NetDest getPrediction(Address addr, MachineID local);
     void addStikcyPredEntry(Address addr, MachineID provider, NetDest predMask);
-    NetDest getPredCacheNetDest(Address addr);
-    bool updatePredCache(Address addr);
+    NetDest getPredCachePrediction(PredCacheIndex index);
+    bool updatePredCache(PredCacheIndex thisIndex);
+    PredCacheIndex getPredCacheIndex(Address addr);
 
     // MANDATORY SIM OBJECT METHODS
     StickyPred& operator=(const StickyPred& obj);
 
  private:
-    int size_SnoopTable;
-    PredCache_t predCache;
+    int size_PredTable;
+    int num_StickyOneside;
+
+    /* the pred cache table's organization is like this
+     * index ->|tag(address) |  mask | last invalidator |
+     *         |             |       |                  |
+     */
+    PredCache_t *predCache;
 };
 
 #endif // __MEM_RUBY_COMMON_SNOOPBASICPRED_HH__
