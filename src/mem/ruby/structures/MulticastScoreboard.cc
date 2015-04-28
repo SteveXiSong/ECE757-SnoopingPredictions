@@ -20,6 +20,18 @@ MulticastScoreboard::MulticastScoreboard(const Params *p) : SimObject(p)
   l2_GETS_services = 0;
   l2_GETX_services = 0;
   l2_PUTX_services = 0;
+  GETS_false_positive = 0;
+  GETS_true_positive = 0;
+  GETS_false_negative = 0;
+  GETS_true_negative = 0;
+  GETX_false_positive = 0; 
+  GETX_true_positive = 0;
+  GETX_false_negative = 0;
+  GETX_true_negative = 0;
+  PUTX_false_positive = 0;
+  PUTX_true_positive = 0;
+  PUTX_false_negative = 0;
+  PUTX_true_negative = 0;
 }; 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -47,6 +59,21 @@ void MulticastScoreboard::record_GETS(MachineID l1, NetDest pred_set, NetDest sh
   } else if(pred_set.isElement(owner)) {
     accurate_GETS_predictions++;
   }
+ 
+  // classify GETS
+  if(pred_set.count() > 2) { // more than 2 in mask implies sharing predicted
+    if(!owner_valid || owner.type == MachineType_L2Cache) {
+      GETS_false_positive++;
+    } else {
+      GETS_true_positive++;
+    } 
+  } else {  // otherwise prediction thinks no sharing
+    if(!owner_valid || owner.type == MachineType_L2Cache) {
+      GETS_true_negative++;
+    } else {
+      GETS_false_negative++;
+    }
+  }
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -70,6 +97,13 @@ void MulticastScoreboard::record_GETS(MachineID l1, NetDest pred_set)
   // update prediction accuracy data
   accurate_GETS_predictions++;
   l2_GETS_services++;
+
+  // classify GETS
+  if(pred_set.count() > 2) { // predicted shared
+    GETS_false_positive++;
+  } else {
+    GETS_true_negative++;
+  }
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -100,6 +134,20 @@ void MulticastScoreboard::record_GETX(MachineID l1, NetDest pred_set, NetDest sh
     }
   }
 
+  // classify GETX
+  if(pred_set.count() > 2) { // more than 2 in mask implies sharing predicted
+    if(!owner_valid || owner.type == MachineType_L2Cache) {
+      GETX_false_positive++;
+    } else {
+      GETX_true_positive++;
+    } 
+  } else {  // otherwise prediction thinks no sharing
+    if(!owner_valid || owner.type == MachineType_L2Cache) {
+      GETX_true_negative++;
+    } else {
+      GETX_false_negative++;
+    }
+  }
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -123,6 +171,13 @@ void MulticastScoreboard::record_GETX(MachineID l1, NetDest pred_set)
   // update accuracy counts
   accurate_GETX_predictions++;
   l2_GETX_services++; 
+
+  // classify GETX
+  if(pred_set.count() > 2) { // predicted shared
+    GETX_false_positive++;
+  } else {
+    GETX_true_negative++;
+  }
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -151,6 +206,21 @@ void MulticastScoreboard::record_PUTX(MachineID l1, NetDest pred_set, NetDest sh
       accurate_PUTX_predictions++;
     }
   }
+
+  // classify PUTX
+  if(pred_set.count() > 2) { // more than 2 in mask implies sharing predicted
+    if(!owner_valid || owner.type == MachineType_L2Cache) {
+      PUTX_false_positive++;
+    } else {
+      PUTX_true_positive++;
+    } 
+  } else {  // otherwise prediction thinks no sharing
+    if(!owner_valid || owner.type == MachineType_L2Cache || (owner == l1 && sharers.isEmpty())) {
+      PUTX_true_negative++;
+    } else {
+      PUTX_false_negative++;
+    }
+  }
 }
 
 ////////////////////////////////////////////////////////////////////////////////  
@@ -174,6 +244,13 @@ void MulticastScoreboard::record_PUTX(MachineID l1, NetDest pred_set)
   // update accuracy counts
   accurate_PUTX_predictions++;
   l2_PUTX_services++; 
+
+  // classify PUTX
+  if(pred_set.count() > 2) { // predicted shared
+    PUTX_false_positive++;
+  } else {
+    PUTX_true_negative++;
+  }
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -237,6 +314,66 @@ void MulticastScoreboard::regStats()
     l2_PUTX_services
         .name(name() + ".l2_PUTX_services")
         .desc("Total count of PUTX operations serviced by l2")
+        ;
+  
+    GETS_false_positive 
+        .name(name() + ".GETS_false_positive")
+        .desc("Total count of GETS operations predicting L1 sharing when none exists")
+        ;
+
+    GETS_true_positive
+        .name(name() + ".GETS_true_positive")
+        .desc("Total count of GETS operations correctly predicting L1 sharing")
+        ;
+
+    GETS_false_negative
+        .name(name() + ".GETS_false_negative")
+        .desc("Total count of GETS operations predicting no L1 sharing when sharing exists")
+        ;
+
+    GETS_true_negative
+        .name(name() + ".GETS_true_negative")
+        .desc("Total count of GETS operations correctly predicting no L1 sharing")
+        ;
+
+    GETX_false_positive 
+        .name(name() + ".GETX_false_positive")
+        .desc("Total count of GETX operations predicting L1 sharing when none exists")
+        ;
+
+    GETX_true_positive
+        .name(name() + ".GETX_true_positive")
+        .desc("Total count of GETX operations correctly predicting L1 sharing")
+        ;
+
+    GETX_false_negative
+        .name(name() + ".GETX_false_negative")
+        .desc("Total count of GETX operations predicting no L1 sharing when sharing exists")
+        ;
+
+    GETX_true_negative
+        .name(name() + ".GETX_true_negative")
+        .desc("Total count of GETX operations correctly predicting no L1 sharing")
+        ;
+
+    PUTX_false_positive 
+        .name(name() + ".PUTX_false_positive")
+        .desc("Total count of PUTX operations predicting L1 sharing when none exists")
+        ;
+
+    PUTX_true_positive
+        .name(name() + ".PUTX_true_positive")
+        .desc("Total count of PUTX operations correctly predicting L1 sharing")
+        ;
+
+    PUTX_false_negative
+        .name(name() + ".PUTX_false_negative")
+        .desc("Total count of PUTX operations predicting no L1 sharing when sharing exists")
+        ;
+
+    PUTX_true_negative
+        .name(name() + ".PUTX_true_negative")
+        .desc("Total count of PUTX operations correctly predicting no L1 sharing")
         ;
 
     // Recorded Stats
@@ -305,6 +442,84 @@ void MulticastScoreboard::regStats()
         .desc("Percent of all PUTX predictions serviced by L2")
         ;
     PUTX_l2_accuracy = l2_PUTX_services / PUTX_count;
+
+    overall_prevalence
+        .name(name() + ".overall_prevalence")
+        .desc("Rate at which true sharing occurs. Maximum bound of prediction benefit")
+        ;
+    overall_prevalence = (GETS_true_positive + GETS_false_negative + GETX_true_positive + GETX_false_negative + PUTX_true_positive + PUTX_false_negative) / 
+                         (GETS_true_positive + GETS_true_negative + GETS_false_positive + GETS_false_negative + 
+                          GETX_true_positive + GETX_true_negative + GETX_false_positive + GETX_false_negative + 
+                          PUTX_true_positive + PUTX_true_negative + PUTX_false_positive + PUTX_false_negative);        
+
+
+    overall_sensitivity
+        .name(name() + ".overall_sensitivity")
+        .desc("Effectiveness of predictor when true sharing occurs")
+        ;
+    overall_sensitivity = (GETS_true_positive + GETX_true_positive + PUTX_true_positive) / (
+                           GETS_true_positive + GETS_false_negative + GETX_true_positive + GETX_false_negative + PUTX_true_positive + PUTX_false_negative);
+  
+    overall_pvp
+        .name(name() + ".overall_pvp")
+        .desc("Predictive value of positive test. Usefulness of a positive sharing prediction")
+        ;
+    overall_pvp = (GETS_true_positive + GETX_true_positive + PUTX_true_positive) / (
+                   GETS_true_positive + GETS_false_positive + GETX_true_positive + GETX_false_positive + PUTX_true_positive + PUTX_false_positive);
+
+    GETS_prevalence
+        .name(name() + ".GETS_prevalence")
+        .desc("Rate at which true sharing occurs during GETS. Maximum bound of prediction benefit")
+        ;
+    GETS_prevalence = (GETS_true_positive + GETS_false_negative) / (GETS_true_positive + GETS_true_negative + GETS_false_positive + GETS_false_negative);
+
+    GETS_sensitivity
+        .name(name() + ".GETS_sensitivity")
+        .desc("Effectiveness of predictor when true sharing occurs on GETS")
+        ;
+    GETS_sensitivity = GETS_true_positive / (GETS_true_positive + GETS_false_negative);
+
+    GETS_pvp
+        .name(name() + ".GETS_pvp")
+        .desc("Predictive value of positive test. Usefulness of a positive sharing prediction on GETS")
+        ;
+    GETS_pvp = GETS_true_positive / (GETS_true_positive + GETS_false_positive);  
+
+    GETX_prevalence
+        .name(name() + ".GETX_prevalence")
+        .desc("Rate at which true sharing occurs during GETX. Maximum bound of prediction benefit")
+        ;
+    GETX_prevalence = (GETX_true_positive + GETX_false_negative) / (GETX_true_positive + GETX_true_negative + GETX_false_positive + GETX_false_negative);
+
+    GETX_sensitivity
+        .name(name() + ".GETX_sensitivity")
+        .desc("Effectiveness of predictor when true sharing occurs on GETX")
+        ;
+    GETX_sensitivity = GETX_true_positive / (GETX_true_positive + GETX_false_negative);
+
+    GETX_pvp
+        .name(name() + ".GETX_pvp")
+        .desc("Predictive value of positive test. Usefulness of a positive sharing prediction on GETX")
+        ;
+    GETX_pvp = GETX_true_positive / (GETX_true_positive + GETX_false_positive);  
+
+    PUTX_prevalence
+        .name(name() + ".PUTX_prevalence")
+        .desc("Rate at which true sharing occurs during PUTX. Maximum bound of prediction benefit")
+        ;
+    PUTX_prevalence = (PUTX_true_positive + PUTX_false_negative) / (PUTX_true_positive + PUTX_true_negative + PUTX_false_positive + PUTX_false_negative);
+
+    PUTX_sensitivity
+        .name(name() + ".PUTX_sensitivity")
+        .desc("Effectiveness of predictor when true sharing occurs on PUTX")
+        ;
+    PUTX_sensitivity = PUTX_true_positive / (PUTX_true_positive + PUTX_false_negative);
+
+    PUTX_pvp
+        .name(name() + ".PUTX_pvp")
+        .desc("Predictive value of positive test. Usefulness of a positive sharing prediction on PUTX")
+        ;
+    PUTX_pvp = PUTX_true_positive / (PUTX_true_positive + PUTX_false_positive);  
 }
 
 MulticastScoreboard *
