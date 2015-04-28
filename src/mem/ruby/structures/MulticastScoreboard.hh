@@ -49,15 +49,26 @@ class MulticastScoreboard : public SimObject {
   Stats::Scalar total_nodes_predicted;
   Stats::Scalar extra_nodes_predicted;
   Stats::Scalar perfect_nodes_predicted;
-  Stats::Scalar accurate_predictions;
-  Stats::Scalar l2_predictions;
+  Stats::Scalar accurate_GETS_predictions;
+  Stats::Scalar accurate_GETX_predictions;
+  Stats::Scalar accurate_PUTX_predictions;
+  Stats::Scalar l2_GETS_services;
+  Stats::Scalar l2_GETX_services;
+  Stats::Scalar l2_PUTX_services;
 
   // Recorded Stats
   Stats::Formula avg_nodes_in_multicast;
   Stats::Formula avg_extra_nodes_predicted;
   Stats::Formula multicast_traffic_ratio;
-  Stats::Formula prediction_accuracy;
-  Stats::Formula blocks_found_at_l2;
+  Stats::Formula overall_prediction_accuracy;
+  Stats::Formula GETS_prediction_accuracy;
+  Stats::Formula GETX_prediction_accuracy;
+  Stats::Formula PUTX_prediction_accuracy;
+  Stats::Formula overall_l2_accuracy;
+  Stats::Formula GETS_l2_accuracy;
+  Stats::Formula GETX_l2_accuracy;
+  Stats::Formula PUTX_l2_accuracy;
+  
 };
 
 #endif // __MEM_RUBY_STRUCTURE_MULTICASTSCOREBOARD_HH__
