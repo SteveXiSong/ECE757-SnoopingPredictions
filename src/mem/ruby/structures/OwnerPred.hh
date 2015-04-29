@@ -22,6 +22,7 @@ class OwnerPred : public SimObject {
     OwnerPred(const Params *p);
     ~OwnerPred();
 
+    NetDest getPrediction(Address pc, Address addr, MachineID local);
     NetDest getPrediction(Address addr, MachineID local);
 
     enum CoherenceReqType{
@@ -50,18 +51,62 @@ class OwnerPred : public SimObject {
  private:
     profileData_t profileData;
     std::vector<OwnerPredL1Table> _L1TableEntryArray;
+    bool predictAsCacheToCache() const;
     std::vector<OwnerPredL2Table> _L2TableEntryArray;
-    
+
+    size_t _tableSize;
+    size_t _tableLgSize;
 };
 
 class OwnerPredL1Table
 {
   friend class OwnerPred;
 
-  OwnerPredL1Table() : _confdCnt(1), _confdPtr(1), _nodePtr(0) {}
-  unsigned _confdCnt : 2;   // 2-bit saturating counter regarding confidence about $2$ transfer;
-  unsigned _confdPtr : 2;   // 2-bit saturating counter
-  unsigned _nodePtr;
+  public:
+  OwnerPredL1Table();
+  ~OwnerPredL1Table();
+
+  private:
+  inline unsigned getConfdCnt() const {
+     return _confdCnt;
+  }
+  inline unsigned getConfdPtr() const {
+    return _confdPtr;
+  }
+  inline unsigned getNodePtr() const {
+    return _confdPtr;
+  }
+
+  unsigned _confdCnt : 2;   //  2-bit saturating counter regarding confidence about $2$ transfer;
+  unsigned _confdPtr : 2;   //  2-bit saturating counter
+  unsigned _nodePtr;        //  predicted target node
+};
+
+class OwnerPredL2Table
+{
+  friend class OwnerPred;
+
+  public:
+  OwnerPredL2Table();
+  ~OwnerPredL2Table();
+
+  private:
+  inline unsigned getConfdPtr() const {
+    return _confdPtr;
+  }
+  inline unsigned getNodePtr(size_t idx) const {
+    assert( 0 <= idx && idx < 4 );
+     return _nodePtrArray[idx];
+  }
+  inline unsigned getValidBit(size_t idx) const {
+    assert( 0 <= idx && idx < 4 );
+    return _nodeValidArray[idx];
+  }
+
+  unsigned _confdPtr : 2;
+  unsigned _nodePtrArray[4];    //  predicted target node array
+  bool _nodeValidArray[4];      //  prediction valid array
+
 };
 
 #endif 
