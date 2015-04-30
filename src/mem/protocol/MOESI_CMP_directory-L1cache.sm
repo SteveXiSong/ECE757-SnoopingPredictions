@@ -310,6 +310,7 @@ machine(L1Cache, "Directory protocol")
           trigger(Event:Writeback_Nack, in_msg.Addr,
                   getCacheEntry(in_msg.Addr), TBEs[in_msg.Addr]);
         } else if (in_msg.Type == CoherenceRequestType:INV) {
+          predictor.invalidatePrediction(in_msg.Addr, in_msg.Requestor);
           trigger(Event:Inv, in_msg.Addr,
                   getCacheEntry(in_msg.Addr), TBEs[in_msg.Addr]);
         } else {
@@ -573,6 +574,7 @@ machine(L1Cache, "Directory protocol")
           out_msg.Type := CoherenceResponseType:DATA_EXCLUSIVE;
           out_msg.Sender := machineID;
           out_msg.SenderMachine := MachineType:L1Cache;
+          //ece757-Steve
           out_msg.PredictionMask := predictor.getPrediction(address, machineID);
           out_msg.Destination.add(in_msg.Requestor);
           out_msg.DataBlk := cache_entry.DataBlk;
@@ -861,7 +863,7 @@ machine(L1Cache, "Directory protocol")
   action(kk_deallocateL1CacheBlock, "\k", desc="Deallocate cache block.  Sets the cache to invalid, allowing a replacement in parallel with a fetch.") {
     if (L1Dcache.isTagPresent(address)) {
         // ece757-Steve
-        //predictor.invalidatePredCacheEntry(address, machineID);
+      predictor.invalidatePrediction(address, machineID);
       L1Dcache.deallocate(address);
     } else {
       L1Icache.deallocate(address);
@@ -885,7 +887,7 @@ machine(L1Cache, "Directory protocol")
     if (send_evictions) {
       DPRINTF(RubySlicc, "Sending invalidation for %s to the CPU\n", address);
       sequencer.evictionCallback(address);
-      //predictor.invalidatePrediction(address, machineID);
+      predictor.invalidatePrediction(address, machineID);
     }
   }
 

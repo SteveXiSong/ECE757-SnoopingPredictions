@@ -23,6 +23,14 @@ class PredBlock_t{
         NetDest prediction;
         MachineID invalidator;
         Address tag;
+
+        bool mergeInv(){
+            if( tag.getAddress() != 0){
+                prediction.add(invalidator);
+                return true;
+            }
+            return false;
+        }
 };
 
 typedef unsigned int PredCacheIndex;
@@ -51,7 +59,10 @@ class StickyPred : public SnoopBasicPred {
     PredCacheIndex getPredCacheIndex(Address addr);
     Address getPredCacheTag(PredCacheIndex index);
     void resetPredCacheTag(PredCacheIndex index, MachineID inv);
+    void setPredCacheEntry(Address addr, NetDest providedPrediction, MachineID inv);
     bool isValidEntry(PredCacheIndex index);
+    bool isTagMatch(Address addr, PredCacheIndex index);
+    void mergeMaskIntoEntry(PredCacheIndex index, NetDest predMask);
 
  private:
     int size_PredTable;

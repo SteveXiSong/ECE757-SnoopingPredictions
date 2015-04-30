@@ -7,11 +7,14 @@ using namespace std;
 
 typedef RubyStickyPredParams Params;
 
+#define TABLE_SIZE 256
+#define STICKY_NUM 40
+
 StickyPred::StickyPred(const Params *p)
     :SnoopBasicPred(p)
 {
-    size_PredTable = 1024;
-    num_StickyOneside = 10;
+    size_PredTable = TABLE_SIZE;
+    num_StickyOneside = STICKY_NUM;
     predCache = new PredCache_t();
 
     fprintf(stdout, "StickyPred class is constructed:\n");
@@ -70,9 +73,17 @@ void StickyPred::addStickyPredEntry(Address addr, MachineID provider, NetDest pr
     PredCacheIndex index = getPredCacheIndex(addr);
 
     if(isValidEntry(index) ){
-        getPredCachePrediction(index).add(provider);
+        if( isTagMatch(addr, index) ){
+            // tag matched, update
+            mergeMaskIntoEntry(index, predMask);
+        }
+        else{
+            // not matched, set it
+            setPredCacheEntry(addr, predMask, provider);
+        }
         return ;
     }else{
+        //is not presented
         //replace the original data
         PredBlock_t *newBlock = new PredBlock_t(addr, predMask, provider);
         (*predCache)[index] = newBlock;
@@ -118,6 +129,7 @@ bool StickyPred::updatePredCache(PredCacheIndex thisIndex){
 
     // update the entry
     (*predCache)[thisIndex]->prediction = thisPred;
+    (*predCache)[thisIndex]->mergeInv();
 
     return true;
 }
@@ -179,4 +191,21 @@ void StickyPred::dumpPredCache(){
         DPRINTF(RubySnoopPred, "0x%lx\t", it->second->tag.getAddress());
         //Debug::RubySnoopPred << it->second->prediction << "\t";
     }
+}
+
+bool StickyPred::isTagMatch(Address addr, PredCacheIndex index){
+    assert( isValidEntry(index) == true );
+    return (getPredCacheTag(index).getAddress() == addr.getAddress())? true:false;
+}
+
+void StickyPred::setPredCacheEntry(Address addr, NetDest providedPrediction, MachineID provider){
+    PredCacheIndex thisIndex = getPredCacheIndex(addr);
+    (*predCache)[thisIndex]->tag = addr;
+    (*predCache)[thisIndex]->prediction = providedPrediction;
+    (*predCache)[thisIndex]->invalidator = provider;
+}
+
+void StickyPred::mergeMaskIntoEntry(PredCacheIndex index, NetDest predMask){
+    assert( isValidEntry(index) == true );
+    (*predCache)[index]->prediction.OR(predMask);
 }
