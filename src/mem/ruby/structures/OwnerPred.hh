@@ -25,37 +25,16 @@ class OwnerPred : public SimObject {
     NetDest getPrediction(Address pc, Address addr, MachineID local);
     void updatePredictionTable( Address pc, MachineID realOwner );
 
-    enum CoherenceReqType{
-        GETS,
-        GETX,
-        MC_GETS,
-    };
-    void profileRequestMsg(int reqNum);
-    int getGETS();
-
     // MANDATORY SIM OBJECT METHODS
     OwnerPred & operator=(const OwnerPred & obj);
 
-    struct profileData_t{
-      int MC_req_fromL1;
-      int tot_req;
-      int tot_req_fromL1;
-      int GetS;
-      int GetX;
-      int MC_GetX;
-      int MC_GetS;
-    };
-
-    typedef profileData_t profileData_t;
-
  private:
-    profileData_t profileData;
     std::vector<OwnerPredL1Table> _L1TableEntryArray;
-    bool predictAsCacheToCache() const;
     std::vector<OwnerPredL2Table> _L2TableEntryArray;
 
     size_t _tableSize;
     size_t _tableLgSize;
+
 };
 
 class OwnerPredL1Table
@@ -67,14 +46,14 @@ class OwnerPredL1Table
   ~OwnerPredL1Table();
 
   private:
-  inline unsigned getConfdCnt() const { return _confdCnt; }
-  inline unsigned getConfdPtr() const { return _confdPtr; }
+  inline unsigned cfdC2C() const { return _confdCnt; }
+  inline unsigned cfdNode() const { return _confdPtr; }
   inline NodeID getNodePtr() const { return _confdPtr; }
 
-  inline void confdCntUp() { if( _confdCnt < 3 ) ++ _confdCnt; }
-  inline void confdCntDn() { if( _confdCnt > 0 ) -- _confdCnt; }
-  inline void confdPtrUp() { if( _confdPtr < 3 ) ++ _confdPtr; }
-  inline void confdPtrDn() { if( _confdPtr > 0 ) -- _confdPtr; }
+  inline void cfdC2C_up() { if( _confdCnt < 3 ) ++ _confdCnt; }
+  inline void cfdC2C_dn() { if( _confdCnt > 0 ) -- _confdCnt; }
+  inline void cfdNode_up() { if( _confdPtr < 3 ) ++ _confdPtr; }
+  inline void cfdNode_dn() { if( _confdPtr > 0 ) -- _confdPtr; }
 
   unsigned _confdCnt : 2;   //  2-bit saturating counter regarding confidence about $2$ transfer;
   unsigned _confdPtr : 2;   //  2-bit saturating counter
@@ -90,13 +69,13 @@ class OwnerPredL2Table
   ~OwnerPredL2Table();
 
   private:
-  inline unsigned getConfdPtr() const { return _confdPtr; }
+  inline unsigned cfdNode() const { return _confdPtr; }
 
   NodeID getNodePtr(size_t idx) const;
   bool getValidBit(size_t idx) const;
 
-  inline void confdPtrUp() { if( _confdPtr < 3 ) ++ _confdPtr; }
-  inline void confdPtrDn() { if( _confdPtr > 0 ) -- _confdPtr; }
+  inline void cfdNode_up() { if( _confdPtr < 3 ) ++ _confdPtr; }
+  inline void cfdNode_dn() { if( _confdPtr > 0 ) -- _confdPtr; }
 
   inline void setValidBit(size_t idx) {
     assert( 0 <= idx && idx < 4 );
