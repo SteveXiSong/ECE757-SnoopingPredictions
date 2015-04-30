@@ -33,18 +33,25 @@ class StickyPred : public SnoopBasicPred {
     StickyPred(const Params *p);
     ~StickyPred();
 
+    // ruby interface
     NetDest getPrediction(Address addr, MachineID local);
-    void addStikcyPredEntry(Address addr, MachineID provider, NetDest predMask);
-    NetDest getPredCachePrediction(PredCacheIndex index);
-    bool updatePredCache(PredCacheIndex thisIndex);
-    PredCacheIndex getPredCacheIndex(Address addr);
-    bool invalidatePredCacheEntry(Address addr, MachineID inv);
-    Address getPredCacheTag(PredCacheIndex index);
-    void resetPredCacheTag(PredCacheIndex index, MachineID inv);
-    bool isValidEntry(PredCacheIndex index);
+    void addPrediction(Address addr, MachineID provider, NetDest predMask);
+    bool invalidatePrediction(Address addr, MachineID inv);
+
+    void dumpPredCache();
 
     // MANDATORY SIM OBJECT METHODS
     StickyPred& operator=(const StickyPred& obj);
+
+ private:
+    void addStickyPredEntry(Address addr, MachineID provider, NetDest predMask);
+    bool invalidatePredCacheEntry(Address addr, MachineID inv);
+    NetDest getPredCachePrediction(PredCacheIndex index);
+    bool updatePredCache(PredCacheIndex thisIndex);
+    PredCacheIndex getPredCacheIndex(Address addr);
+    Address getPredCacheTag(PredCacheIndex index);
+    void resetPredCacheTag(PredCacheIndex index, MachineID inv);
+    bool isValidEntry(PredCacheIndex index);
 
  private:
     int size_PredTable;

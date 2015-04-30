@@ -104,6 +104,8 @@ structure (SnoopBasicPred, external = "yes", non_obj="yes") {
 
 structure (StickyPred, external = "yes", non_obj="yes") {
     NetDest getPrediction(Address addr, MachineID local);
+    void addPrediction(Address addr, MachineID provider, NetDest predMask);
+    bool invalidatePrediction(Address addr, MachineID inv);
 }
 
 structure (Sequencer, external = "yes") {

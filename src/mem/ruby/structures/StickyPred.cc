@@ -13,6 +13,10 @@ StickyPred::StickyPred(const Params *p)
     size_PredTable = 1024;
     num_StickyOneside = 10;
     predCache = new PredCache_t();
+
+    fprintf(stdout, "StickyPred class is constructed:\n");
+    fprintf(stdout, "Number of PredTable entries: %d\n", size_PredTable);
+    fprintf(stdout, "Number of Sticky entries(one side): %d\n", num_StickyOneside);
 }
 
 StickyPred::~StickyPred(){
@@ -40,11 +44,11 @@ NetDest StickyPred::getPrediction(Address addr, MachineID local) {
 
     // TODO: this could be not totally good
     PredCacheIndex index = getPredCacheIndex(addr);
-    if(isValidEntry(index) == true){
+    if( isValidEntry(index) == true ){
         // get prediction from PredCache
         bool result = updatePredCache(index);
         if( result == false){
-            assert(0); // update pred cache failed
+            //assert(0); // update pred cache failed
         }
         prediction = prediction.OR(getPredCachePrediction(index));
     }
@@ -54,19 +58,27 @@ NetDest StickyPred::getPrediction(Address addr, MachineID local) {
 }
 
 NetDest StickyPred::getPredCachePrediction(PredCacheIndex index ){
-    assert((*predCache)[index]->tag.getAddress() != 0);
+    assert( isValidEntry(index) == true );
+    assert( (*predCache)[index]->tag.getAddress() != 0 );
 
     NetDest prediction = (*predCache)[index]->prediction;
     return prediction;
 }
 
-void StickyPred::addStikcyPredEntry(Address addr, MachineID provider, NetDest predMask){
+void StickyPred::addStickyPredEntry(Address addr, MachineID provider, NetDest predMask){
 
     PredCacheIndex index = getPredCacheIndex(addr);
-    PredBlock_t *newBlock = new PredBlock_t(addr, predMask, provider);
 
-    pair<PredCacheIndex, PredBlock_t*> newEntry = make_pair(index, newBlock);
-    predCache->insert( newEntry );
+    if(isValidEntry(index) ){
+        getPredCachePrediction(index).add(provider);
+        return ;
+    }else{
+        //replace the original data
+        PredBlock_t *newBlock = new PredBlock_t(addr, predMask, provider);
+        (*predCache)[index] = newBlock;
+        return ;
+    }
+    return ;
 }
 
 PredCacheIndex StickyPred::getPredCacheIndex(Address addr){
@@ -75,8 +87,13 @@ PredCacheIndex StickyPred::getPredCacheIndex(Address addr){
 }
 
 bool StickyPred::updatePredCache(PredCacheIndex thisIndex){
-    assert(num_StickyOneside>=1);
+    assert( isValidEntry(thisIndex) == true );
+    assert( num_StickyOneside>=1 );
+
     if(num_StickyOneside*2 > size_PredTable)
+        num_StickyOneside = size_PredTable/2 - 1;
+
+    if(num_StickyOneside*2 > predCache->size())
         return false;
 
     NetDest thisPred = getPredCachePrediction(thisIndex);
@@ -84,7 +101,7 @@ bool StickyPred::updatePredCache(PredCacheIndex thisIndex){
     // for positive side
     for( int i = 1; i <= num_StickyOneside; i++ ){
         PredCacheIndex itIndex = (thisIndex + i)%size_PredTable;
-        if( isValidEntry(itIndex) == false)
+        if( isValidEntry(itIndex) == false )
             continue;
         NetDest itPred = getPredCachePrediction(itIndex);
         thisPred = thisPred.OR(itPred);
@@ -92,7 +109,10 @@ bool StickyPred::updatePredCache(PredCacheIndex thisIndex){
 
     // for negative side
     for( int i = -1; i >= -num_StickyOneside; i-- ){
-        NetDest itPred = (*predCache)[(thisIndex + i)%size_PredTable]->prediction;
+        PredCacheIndex itIndex = (thisIndex + i)%size_PredTable;
+        if( isValidEntry(itIndex) == false )
+            continue;
+        NetDest itPred = getPredCachePrediction(itIndex);
         thisPred = thisPred.OR(itPred);
     }
 
@@ -108,7 +128,8 @@ Address StickyPred::getPredCacheTag(PredCacheIndex index){
 
 bool StickyPred::invalidatePredCacheEntry(Address addr, MachineID inv){
     PredCacheIndex thisIndex = getPredCacheIndex(addr);
-    if( addr.getAddress() == getPredCacheTag(thisIndex).getAddress() ){
+    if(isValidEntry(thisIndex) == true){
+    //if( addr.getAddress() == getPredCacheTag(thisIndex).getAddress() ){
         resetPredCacheTag(thisIndex, inv);
         return true;
     }
@@ -123,12 +144,39 @@ void StickyPred::resetPredCacheTag(PredCacheIndex index, MachineID inv){
     (*predCache)[index]->tag.setAddress(0);
     (*predCache)[index]->prediction.clear();
     (*predCache)[index]->invalidator = inv;
+    //predCache->erase(index);
 }
 
 bool StickyPred::isValidEntry(PredCacheIndex index){
-    if( predCache->find(index) == predCache->end() ||
-            (*predCache)[index]->tag.getAddress() == 0 )
-        return false;
+    //assert( isValidEntry(index) == true );
+    if( predCache->find(index) != predCache->end() ){
+        if( (*predCache)[index]->tag.getAddress() == 0 )
+            return false;
+        else
+            return true;
+    }
     else
-        return true;
+        return false;
+
+    return false;
+}
+
+void StickyPred::addPrediction(Address addr, MachineID provider, NetDest predMask){
+    addStickyPredEntry(addr, provider, predMask);
+}
+
+
+bool StickyPred::invalidatePrediction(Address addr, MachineID inv){
+    return invalidatePredCacheEntry(addr, inv);
+}
+
+void StickyPred::dumpPredCache(){
+    DPRINTF(RubySnoopPred, "----Dumping PredCache---------");
+    DPRINTF(RubySnoopPred, "Index\t|Tag\t\t| Mask\t\t|Invalidator\n");
+    for(PredCache_t::iterator it = predCache->begin();
+            it != predCache->end(); it++){
+        DPRINTF(RubySnoopPred, "0x%x\t", it->first);
+        DPRINTF(RubySnoopPred, "0x%lx\t", it->second->tag.getAddress());
+        //Debug::RubySnoopPred << it->second->prediction << "\t";
+    }
 }

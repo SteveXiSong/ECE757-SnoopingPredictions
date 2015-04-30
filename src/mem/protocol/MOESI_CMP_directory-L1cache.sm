@@ -293,6 +293,8 @@ machine(L1Cache, "Directory protocol")
                     getCacheEntry(in_msg.Addr), TBEs[in_msg.Addr]);
           }
         } else if (in_msg.Type == CoherenceRequestType:GETS) {
+          // ece757-Steve
+          predictor.addPrediction(in_msg.Addr, in_msg.Requestor, in_msg.PredictionMask);
           trigger(Event:Fwd_GETS, in_msg.Addr,
                   getCacheEntry(in_msg.Addr), TBEs[in_msg.Addr]);
         } else if (in_msg.Type == CoherenceRequestType:DMA_READ) {
@@ -325,6 +327,8 @@ machine(L1Cache, "Directory protocol")
           trigger(Event:Ack, in_msg.Addr,
                   getCacheEntry(in_msg.Addr), TBEs[in_msg.Addr]);
         } else if (in_msg.Type == CoherenceResponseType:DATA) {
+          // ece757-Steve
+          predictor.addPrediction(in_msg.Addr, in_msg.Sender, in_msg.PredictionMask);
           trigger(Event:Data, in_msg.Addr,
                   getCacheEntry(in_msg.Addr), TBEs[in_msg.Addr]);
         } else if (in_msg.Type == CoherenceResponseType:DATA_EXCLUSIVE) {
@@ -836,7 +840,9 @@ machine(L1Cache, "Directory protocol")
       assert(is_valid(cache_entry));
       cache_entry.DataBlk := in_msg.DataBlk;
       cache_entry.Dirty := in_msg.Dirty;
-
+    
+      // ece757-Steve
+      //predictor.addStickyPredEntry(in_msg.Addr, in_msg.Sender, in_msg.PredictionMask);
       if (in_msg.Type == CoherenceResponseType:DATA) {
         //assert(in_msg.Dirty == false);
       }
@@ -854,6 +860,8 @@ machine(L1Cache, "Directory protocol")
 
   action(kk_deallocateL1CacheBlock, "\k", desc="Deallocate cache block.  Sets the cache to invalid, allowing a replacement in parallel with a fetch.") {
     if (L1Dcache.isTagPresent(address)) {
+        // ece757-Steve
+        //predictor.invalidatePredCacheEntry(address, machineID);
       L1Dcache.deallocate(address);
     } else {
       L1Icache.deallocate(address);
@@ -877,6 +885,7 @@ machine(L1Cache, "Directory protocol")
     if (send_evictions) {
       DPRINTF(RubySlicc, "Sending invalidation for %s to the CPU\n", address);
       sequencer.evictionCallback(address);
+      //predictor.invalidatePrediction(address, machineID);
     }
   }
 
