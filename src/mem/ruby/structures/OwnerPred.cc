@@ -34,6 +34,8 @@ NetDest OwnerPred::getPrediction(Address pc, Address addr, MachineID local)
 
   //  1st-level predictor 
   bool isC2C = false;       //  predicted as a $2$ transfer miss
+
+  prediction.add(local);
   if( l1table.getConfdCnt() >= 2 ) {
     isC2C = true;
     if( l1table.getConfdPtr() >=2 ) {
