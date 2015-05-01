@@ -7,8 +7,8 @@ using namespace std;
 
 typedef RubyStickyPredParams Params;
 
-#define TABLE_SIZE 256
-#define STICKY_NUM 40
+#define TABLE_SIZE 4096
+#define STICKY_NUM 10
 
 StickyPred::StickyPred(const Params *p)
     :SnoopBasicPred(p)
@@ -54,6 +54,10 @@ NetDest StickyPred::getPrediction(Address addr, MachineID local) {
             //assert(0); // update pred cache failed
         }
         prediction = prediction.OR(getPredCachePrediction(index));
+    }
+    else if( predCache->find(index) != predCache->end()){
+        // index exits, can provide invalidator
+        prediction.add( (*predCache)[index]->invalidator );
     }
 
     DPRINTF(RubySnoopPred, "[StickyPred] L1 Prediction: %s\n", prediction);
