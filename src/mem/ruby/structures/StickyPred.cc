@@ -5,16 +5,19 @@
 
 using namespace std;
 
-typedef RubyStickyPredParams Params;
+//typedef RubyStickyPredParams Params;
 
-#define TABLE_SIZE 4096
-#define STICKY_NUM 10
+#define TABLE_SIZE 256
+#define STICKY_NUM 40
 
 StickyPred::StickyPred(const Params *p)
     :SnoopBasicPred(p)
 {
-    size_PredTable = TABLE_SIZE;
-    num_StickyOneside = STICKY_NUM;
+    //size_PredTable = TABLE_SIZE;
+    size_PredTable = p->numPredTableEntry;
+    //size_PredTable = p->assoc;
+    //num_StickyOneside = STICKY_NUM;
+    num_StickyOneside = p->numStickyEntry;
     predCache = new PredCache_t();
 
     fprintf(stdout, "StickyPred class is constructed:\n");

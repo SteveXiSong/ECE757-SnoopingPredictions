@@ -8,4 +8,4 @@ class RubyStickyPred(RubySnoopBasicPred):
     cxx_header = "mem/ruby/structures/StickyPred.hh"
 
     numPredTableEntry = Param.Int(1024, "Number of predicton entries")
-    numSticky = Param.Int(10, "Number of stikcy entryies")
+    numStickyEntry = Param.Int(10, "Number of stikcy entryies")

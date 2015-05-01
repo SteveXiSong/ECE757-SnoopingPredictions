@@ -38,6 +38,7 @@ typedef map<PredCacheIndex, PredBlock_t*> PredCache_t;
 
 class StickyPred : public SnoopBasicPred {
  public:
+    typedef RubyStickyPredParams Params;
     StickyPred(const Params *p);
     ~StickyPred();
 
